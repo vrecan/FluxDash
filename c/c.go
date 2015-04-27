@@ -1,6 +1,7 @@
 package c
 
 import (
+	"fmt"
 	DB "github.com/influxdb/influxdb/client"
 	VIPER "github.com/spf13/viper"
 )
@@ -19,7 +20,11 @@ func GetConf(path string) (conf FluxConf, err error) {
 		return conf, err
 	}
 	conf = FluxConf{}
-	v.Marshal(&conf)
+	err = v.Marshal(&conf)
+	fmt.Println(conf)
 
+	if nil != err {
+		return conf, err
+	}
 	return conf, err
 }

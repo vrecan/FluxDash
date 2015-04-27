@@ -6,7 +6,7 @@ import (
 	tm "github.com/nsf/termbox-go"
 	C "github.com/vrecan/FluxDash/c"
 	DB "github.com/vrecan/FluxDash/influx"
-	"math"
+	SPARK "github.com/vrecan/FluxDash/spark"
 	"time"
 )
 
@@ -17,49 +17,32 @@ func main() {
 	}
 
 	db, err := DB.NewInflux(&c.DB)
-	series, err := db.CLI.Query("select mean(value) from /.*/ limit 1")
-	if nil != err {
-		log.Error("Failed to query influx: ", err)
-	}
-	log.Debug("Series: ", series)
+
 	err = ui.Init()
 	if err != nil {
 		panic(err)
 	}
 	defer ui.Close()
+	var sparks *SPARK.Sparks
 
-	sinps := (func() []float64 {
-		n := 220
-		ps := make([]float64, n)
-		for i := range ps {
-			ps[i] = 1 + math.Sin(float64(i)/5)
+	draw := func() {
+		sparks, err = SPARK.NewSparks(SPARK.SparksConf{
+			Query:  "select mean(value) from /default\\.localhost\\.vitals\\.system\\.cpu\\..*/ where time > now() - 30m group by time(5s) fill(0) order asc",
+			Title:  "WOOO",
+			Width:  50,
+			Height: 50,
+		}, db)
+		if nil != err {
+			log.Error(err)
 		}
-		return ps
-	})()
-	lc := ui.NewLineChart()
-	lc.Border.Label = "System CPU"
-	lc.Data = sinps
-	lc.Data = append(lc.Data, sinps...)
-	lc.Width = 200
-	lc.Height = 15
-	lc.X = 0
-	lc.Y = 14
-	lc.AxesColor = ui.ColorWhite
-	lc.LineColor = ui.ColorBlue | ui.AttrBold
-	lc.DataLabels = make([]string, 0)
-	lc.DataLabels = append(lc.DataLabels, "woo")
-	lc.DataLabels = append(lc.DataLabels, "woo2")
-	lc.DataLabels = append(lc.DataLabels, "Somethign else")
-	lc.Mode = "dot"
+		ui.Render(sparks.Render())
+	}
+
+	draw()
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(6, 0, lc)))
+			ui.NewCol(12, 0, sparks.Render())))
 	ui.Body.Align()
-
-	draw := func(t int) {
-		lc.Data = sinps[t/2:]
-		ui.Render(lc)
-	}
 
 	evt := make(chan tm.Event)
 	go func() {
@@ -67,8 +50,6 @@ func main() {
 			evt <- tm.PollEvent()
 		}
 	}()
-	i := 0
-	draw(i)
 	ticker := time.NewTicker(1 * time.Second)
 	for {
 		select {
@@ -77,8 +58,7 @@ func main() {
 				return
 			}
 		case <-ticker.C:
-			i++
-			draw(i)
+			draw()
 		}
 	}
 }

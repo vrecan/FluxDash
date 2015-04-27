@@ -21,3 +21,8 @@ func NewInflux(conf *DB.ClientConfig) (db *Influx, err error) {
 	}
 	return db, err
 }
+
+func (i *Influx) Query(q string) (interface{}, error) {
+	return i.CLI.Query(q)
+
+}
