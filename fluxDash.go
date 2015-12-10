@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+
 	ui "github.com/gizak/termui"
 	DBC "github.com/influxdb/influxdb/client/v2"
 	// tm "github.com/nsf/termbox-go"
 	BC "github.com/vrecan/FluxDash/barchart"
 	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
+	MS "github.com/vrecan/FluxDash/multispark"
 	SL "github.com/vrecan/FluxDash/sparkline"
 	TS "github.com/vrecan/FluxDash/timeselect"
 )
@@ -64,10 +66,18 @@ func Run() {
 	diskUsed := G.NewGauge(ui.ColorCyan, db, idisk)
 
 	iind := BC.BarChartInfo{From: `/es.*\.shards/`,
-		Time:  "now() - 15m",
+		Time:  "now() - 1m",
 		Title: "ES Shards",
 		Where: `"service"= 'gomaintain'`}
 	indices := BC.NewBarChart(db, iind)
+
+	dispatchi := MS.MultiSparkInfo{From: `/Dispatch.*/`,
+		Time:     "now() - 15m",
+		Title:    "Dispatch Info",
+		Where:    `"service"= 'godispatch'`,
+		DataType: 1,
+	}
+	dispatch := MS.NewMultiSpark(db, dispatchi)
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
@@ -76,11 +86,9 @@ func Run() {
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
 			ui.NewCol(12, 0, anubis.Sparks())),
-		ui.NewRow(
-			ui.NewCol(12, 0, diskUsed.Gauges())),
-		ui.NewRow(
-			ui.NewCol(6, 0, indices.BarCharts()),
-			ui.NewCol(6, 0, indices.Labels())),
+		ui.NewRow(diskUsed.GetColumns()...),
+		ui.NewRow(indices.GetColumns()...),
+		ui.NewRow(dispatch.GetColumns()...),
 	)
 
 	// calculate layout
@@ -90,6 +98,7 @@ func Run() {
 	anubis.Update(qTime, interval)
 	diskUsed.Update(qTime)
 	indices.Update(qTime)
+	dispatch.Update(qTime, interval)
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -122,18 +131,16 @@ func Run() {
 		anubis.Update(qTime, interval)
 		diskUsed.Update(qTime)
 		indices.Update(qTime)
-
+		dispatch.Update(qTime, interval)
 		ui.Render(ui.Body)
 
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-
 		sp1.Update(qTime, interval)
 		anubis.Update(qTime, interval)
-
 		diskUsed.Update(qTime)
 		indices.Update(qTime)
-
+		dispatch.Update(qTime, interval)
 		ui.Render(ui.Body)
 
 	})

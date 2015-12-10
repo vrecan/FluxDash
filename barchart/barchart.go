@@ -65,6 +65,9 @@ func (s *BarChart) SetData(time string) {
 	s.C.DataLabels = series
 	s.L.Items = items
 }
+func (s *BarChart) GetColumns() []*ui.Row {
+	return []*ui.Row{ui.NewCol(6, 0, s.BarCharts()), ui.NewCol(6, 0, s.Labels())}
+}
 
 func (s *BarChart) SetTitle() {
 	s.C.BorderLabel = fmt.Sprintf("%s", s.I.Title)
