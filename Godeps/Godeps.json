@@ -1,0 +1,38 @@
+{
+	"ImportPath": "github.com/vrecan/FluxDash",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/dustin/go-humanize",
+			"Rev": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0"
+		},
+		{
+			"ImportPath": "github.com/gizak/termui",
+			"Rev": "7dc4fcbdf6b77c5452e88f93ccfe30902da83d15"
+		},
+		{
+			"ImportPath": "github.com/influxdb/influxdb/client/v2",
+			"Comment": "v0.9.6-rc1-36-g992aea7",
+			"Rev": "992aea7bd34c8e8e62bf5131613984de05f88b62"
+		},
+		{
+			"ImportPath": "github.com/influxdb/influxdb/models",
+			"Comment": "v0.9.6-rc1-36-g992aea7",
+			"Rev": "992aea7bd34c8e8e62bf5131613984de05f88b62"
+		},
+		{
+			"ImportPath": "github.com/influxdb/influxdb/pkg/escape",
+			"Comment": "v0.9.6-rc1-36-g992aea7",
+			"Rev": "992aea7bd34c8e8e62bf5131613984de05f88b62"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-runewidth",
+			"Comment": "travisish-38-gd96d1bd",
+			"Rev": "d96d1bd051f2bd9e7e43d602782b37b93b1b5666"
+		},
+		{
+			"ImportPath": "github.com/nsf/termbox-go",
+			"Rev": "ca2931516914070bb7f934c83e408689cea8dfb7"
+		}
+	]
+}
