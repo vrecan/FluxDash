@@ -53,6 +53,9 @@ func (s *Gauge) SetTitle() {
 	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
 	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, meanTotal[0], maxTotal[0])
 }
+func (s *Gauge) GetColumns() []*ui.Row {
+	return []*ui.Row{ui.NewCol(12, 0, s.Gauges())}
+}
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
 	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
 		log.Fatal("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, groupBy))

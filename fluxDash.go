@@ -66,11 +66,8 @@ func Run() {
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
 			ui.NewCol(12, 0, anubis.Sparks())),
-		ui.NewRow(
-			ui.NewCol(12, 0, diskUsed.Gauges())),
-		ui.NewRow(
-			ui.NewCol(6, 0, indices.BarCharts()),
-			ui.NewCol(6, 0, indices.Labels())),
+		ui.NewRow(diskUsed.GetColumns()...),
+		ui.NewRow(indices.GetColumns()...),
 	)
 
 	// calculate layout
