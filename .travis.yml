@@ -1,4 +1,6 @@
-language: go1.5
+language: go
+go:
+  - 1.5
 install:
 - go get golang.org/x/tools/cmd/cover
 - export PATH=$PATH:$HOME/gopath/bin
