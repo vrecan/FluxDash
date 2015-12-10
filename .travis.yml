@@ -1,0 +1,6 @@
+language: go
+install:
+- go get golang.org/x/tools/cmd/cover
+- export PATH=$PATH:$HOME/gopath/bin
+- go install github.com/vrecan/FluxDash/./...
+script: go test ./... -cover --race
