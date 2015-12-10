@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//UnitInfo that describes the bounding box, previous and subsequent unit
 type UnitInfo struct {
 	MinRounded float64
 	MaxRounded float64
@@ -14,6 +15,7 @@ type UnitInfo struct {
 	PrevRatio  float64
 }
 
+//The defined units
 var Units map[string]*UnitInfo
 
 func init() {
@@ -28,6 +30,7 @@ func init() {
 	Units["centuries"] = &UnitInfo{MinRounded: 1, MaxRounded: 9, NextRatio: 10, PrevRatio: 100, Prev: "years", Next: "millenia"}
 }
 
+//GetRoundedTime with best possible unit
 func GetRoundedTime(time float64, unit string) (newtime float64, newunit string, err error) {
 
 	currentUnits, ok := Units[unit]
@@ -43,6 +46,7 @@ func GetRoundedTime(time float64, unit string) (newtime float64, newunit string,
 	return time, unit, nil
 }
 
+//GetCommaString that represents the value and unit
 func GetCommaString(time float64, unit string) string {
 	newTime, newUnit, err := GetRoundedTime(time, unit)
 	if err != nil {
