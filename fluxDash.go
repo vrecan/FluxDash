@@ -23,17 +23,23 @@ func main() {
 	defer ui.Close()
 
 	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
-		"/system.cpu/", "now() - 15m", db, "CPU")
+		"/system.cpu/", "now() - 15m", db, "CPU", "")
 	cpu.DataType = SL.Percent
 	memFree := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
-		"/system.mem.free/", "now() - 15m", db, "MEM Free")
+		"/system.mem.free/", "now() - 15m", db, "MEM Free", "")
 	memFree.DataType = SL.Bytes
+	memCached := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+		"/system.mem.cached/", "now() - 15m", db, "MEM Cached", "")
+	memCached.DataType = SL.Bytes
+	memBuffers := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+		"/system.mem.buffers/", "now() - 15m", db, "MEM Buffers", "")
+	memBuffers.DataType = SL.Bytes
 	gcPause := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
-		"/gc.pause.ns/", "now() - 15m", db, "GC Pause Time")
-	sp1 := SL.NewSparkLines(cpu, memFree, gcPause)
+		"/gc.pause.ns/", "now() - 15m", db, "GC Pause Time", "")
+	sp1 := SL.NewSparkLines(cpu, memFree, memCached, memBuffers, gcPause)
 
 	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
-		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming")
+		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 
 	// build layout
