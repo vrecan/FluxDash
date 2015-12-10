@@ -1,27 +1,18 @@
 package main
 
 import (
-	"io"
-	"os"
-	SYS "syscall"
-
 	ui "github.com/gizak/termui"
 	DBC "github.com/influxdb/influxdb/client/v2"
-	DEATH "github.com/vrecan/death"
 	// tm "github.com/nsf/termbox-go"
+	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
 	SL "github.com/vrecan/FluxDash/sparkline"
 )
 
 func main() {
-	var goRoutines []io.Closer
-	death := DEATH.NewDeath(SYS.SIGINT, SYS.SIGTERM)
 
 	theUi := closeUI{}
-	go theUi.Start()
-
-	goRoutines = append(goRoutines, closeUI{})
-	death.WaitForDeath(goRoutines...)
+	theUi.Start()
 
 	// fmt.Println("Exiting...")
 
@@ -62,17 +53,32 @@ func (theUI closeUI) Start() {
 		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 
+	diskUsed := G.NewGauge(ui.Gauge{Percent: 99,
+		BarColor:                ui.ColorCyan | ui.AttrBold,
+		PercentColor:            ui.ColorRed | ui.AttrBold,
+		PercentColorHighlighted: ui.ColorMagenta | ui.AttrBold,
+	},
+		`/es\..*.FS.Used.Percent/`,
+		"now() - 15m",
+		db, "Disk Percent Used", `"service"= 'gomaintain'`)
+
+	diskUsed.G.Width = 50
+	diskUsed.G.Height = 3
+
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
-			ui.NewCol(12, 0, anubis.Sparks())))
+			ui.NewCol(12, 0, anubis.Sparks())),
+		ui.NewRow(
+			ui.NewCol(12, 0, diskUsed.Gauges())))
 
 	// calculate layout
 	ui.Body.Align()
 	sp1.Update()
 	anubis.Update()
+	diskUsed.Update()
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -86,6 +92,7 @@ func (theUI closeUI) Start() {
 
 		sp1.Update()
 		anubis.Update()
+		diskUsed.Update()
 		ui.Render(ui.Body)
 
 	})
@@ -97,8 +104,8 @@ func (theUI closeUI) Start() {
 	})
 
 	ui.Loop()
-	p, _ := os.FindProcess(os.Getpid())
-	p.Signal(os.Interrupt)
+	ui.Close()
+
 }
 func (c closeUI) Close() error {
 	ui.StopLoop()
