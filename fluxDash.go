@@ -14,7 +14,6 @@ func main() {
 	if nil != err {
 		panic(err)
 	}
-	// fmt.Println(db)
 
 	err = ui.Init()
 	if err != nil {
