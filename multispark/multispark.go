@@ -47,9 +47,6 @@ func NewMultiSpark(db *DB.Influx, i MultiSparkInfo) *MultiSpark {
 
 func (s *MultiSpark) Update() {
 	s.SetDataAndTitle()
-	// s.SL.BorderLabelFg = ui.ColorGreen | ui.AttrBold
-	// s.SL.Border = true
-	// s.SL.Height = 10
 }
 
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
@@ -71,7 +68,6 @@ func (s *MultiSpark) SetDataAndTitle() {
 	for i, _ := range data {
 		line := ui.NewSparkline()
 		line.Data = data[i]
-		//line.Title = lables[i]
 		switch s.I.DataType {
 		case Percent:
 			line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
