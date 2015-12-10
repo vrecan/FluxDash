@@ -55,11 +55,8 @@ func Run() {
 	dt, di := time.DisplayTimes()
 	displayTimes := fmt.Sprintf("Time: %s Interval: %s", dt, di)
 	_times := ui.NewPar(displayTimes)
-
-<<<<<<< HEAD
 	_times.Height = 1
 	_times.Border = false
-=======
 	idisk := G.GaugeInfo{From: `/es\..*.FS.Used.Percent/`,
 		Time:  "now() - 15m",
 		Title: "Disk Percent Used",
@@ -71,11 +68,10 @@ func Run() {
 		Title: "ES Shards",
 		Where: `"service"= 'gomaintain'`}
 	indices := BC.NewBarChart(db, iind)
->>>>>>> ad5a7132b5de7f8777af5d8ad026ba7deac81924
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(6, 0, _times)),
+			ui.NewCol(4, 0, _times)),
 		ui.NewRow(
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
@@ -89,18 +85,11 @@ func Run() {
 
 	// calculate layout
 	ui.Body.Align()
-<<<<<<< HEAD
-
 	qTime, interval := time.CurTime()
-
 	sp1.Update(qTime, interval)
 	anubis.Update(qTime, interval)
-=======
-	sp1.Update()
-	anubis.Update()
-	diskUsed.Update()
-	indices.Update()
->>>>>>> ad5a7132b5de7f8777af5d8ad026ba7deac81924
+	diskUsed.Update(qTime)
+	indices.Update(qTime)
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -129,26 +118,22 @@ func Run() {
 
 	})
 	ui.Handle("/sys/kbd/<space>", func(e ui.Event) {
-		sp1.Update()
-		anubis.Update()
-		diskUsed.Update()
-		indices.Update()
+		sp1.Update(qTime, interval)
+		anubis.Update(qTime, interval)
+		diskUsed.Update(qTime)
+		indices.Update(qTime)
 
 		ui.Render(ui.Body)
 
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
 
-<<<<<<< HEAD
 		sp1.Update(qTime, interval)
 		anubis.Update(qTime, interval)
-=======
-		sp1.Update()
-		anubis.Update()
-		diskUsed.Update()
-		indices.Update()
 
->>>>>>> ad5a7132b5de7f8777af5d8ad026ba7deac81924
+		diskUsed.Update(qTime)
+		indices.Update(qTime)
+
 		ui.Render(ui.Body)
 
 	})
