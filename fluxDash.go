@@ -40,7 +40,6 @@ func (theUI closeUI) Start() {
 	if err != nil {
 		panic(err)
 	}
-	defer ui.Close()
 
 	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
 		"/system.cpu/", "now() - 15m", db, "CPU", "")
@@ -81,9 +80,7 @@ func (theUI closeUI) Start() {
 	})
 	ui.Handle("/sys/kbd/C-c", func(ui.Event) {
 		ui.StopLoop()
-		ui.Close()
-		p, _ := os.FindProcess(os.Getpid())
-		p.Signal(os.Interrupt)
+
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
 
@@ -100,8 +97,11 @@ func (theUI closeUI) Start() {
 	})
 
 	ui.Loop()
+	p, _ := os.FindProcess(os.Getpid())
+	p.Signal(os.Interrupt)
 }
 func (c closeUI) Close() error {
 	ui.StopLoop()
+	ui.Close()
 	return nil
 }
