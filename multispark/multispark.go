@@ -41,12 +41,12 @@ type MultiSpark struct {
 
 func NewMultiSpark(db *DB.Influx, i MultiSparkInfo) *MultiSpark {
 	ms := &MultiSpark{db: db, I: i}
-	ms.SetDataAndTitle()
+	ms.SetDataAndTitle(fmt.Sprintf("now() - %s", "15m"), fmt.Sprintf("GROUP BY time(%s)", "5s"))
 	return ms
 }
 
-func (s *MultiSpark) Update() {
-	s.SetDataAndTitle()
+func (s *MultiSpark) Update(time string, groupBy string) {
+	s.SetDataAndTitle(time, groupBy)
 }
 
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
@@ -60,10 +60,10 @@ func buildQuery(sel string, from string, where string, time string, groupBy stri
 	}
 }
 
-func (s *MultiSpark) SetDataAndTitle() {
-	data, labels := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, fmt.Sprintf("GROUP BY time(%s)", defaultInterval)))
-	meanTotal, _ := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
-	maxTotal, _ := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
+func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
+	data, labels := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, groupBy))
+	meanTotal, _ := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
+	maxTotal, _ := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, time, ""))
 	var uiSparks []ui.Sparkline
 	for i, _ := range data {
 		line := ui.NewSparkline()
@@ -82,7 +82,12 @@ func (s *MultiSpark) SetDataAndTitle() {
 		}
 		uiSparks = append(uiSparks, line)
 	}
-	s.SL = ui.NewSparklines(uiSparks...)
+	if s.SL == nil {
+		s.SL = ui.NewSparklines(uiSparks...)
+	} else {
+		s.SL.Lines = uiSparks
+	}
+
 	s.SL.Height = 3 + len(data)*2
 
 }

@@ -46,13 +46,13 @@ func (s *BarChart) BarCharts() *ui.BarChart {
 func (s *BarChart) Labels() *ui.List {
 	return s.L
 }
-func (s *BarChart) Update() {
-	s.SetData()
+func (s *BarChart) Update(time string) {
+	s.SetData(time)
 	s.SetTitle()
 }
 
-func (s *BarChart) SetData() {
-	meanTotal, labels := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
+func (s *BarChart) SetData(time string) {
+	meanTotal, labels := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
 	s.C.Data = meanTotal
 	series := make([]string, len(labels))
 	items := make([]string, len(labels))
