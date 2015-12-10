@@ -3,6 +3,7 @@ package sparkline
 import (
 	"encoding/json"
 	"fmt"
+	DASH "github.com/vrecan/FluxDash/dashboard"
 	"log"
 	"time"
 
@@ -19,52 +20,86 @@ type SparkLines struct {
 }
 
 type SparkLine struct {
-	SL       *ui.Sparkline
-	From     string
-	Time     string
-	db       *DB.Influx
-	Title    string
-	Where    string
-	DataType int
+	SL *ui.Sparkline
+	D  DASH.SparkLineData
+	db *DB.Influx
 }
 
+// type SparkLine struct {
+// 	SL       *ui.Sparkline
+// 	From     string
+// 	Time     string
+// 	db       *DB.Influx
+// 	Title    string
+// 	Where    string
+// 	DataType int
+// }
 const (
 	defaultHeight   = 3
 	defaultInterval = "5s"
 )
 
 const (
-	Short   = 1
-	Percent = 2
-	Bytes   = 3
-	Time    = 4
+	Short   = "short"
+	Percent = "percent"
+	Bytes   = "bytes"
+	NS      = "time/ns" //nano second
 )
 
-func NewSparkLines(s ...*SparkLine) *SparkLines {
-	spark := ui.NewSparklines()
-	sparkLines := SparkLines{SL: spark, lines: s}
-	h := defaultHeight
-	for _, sl := range s {
-		h += sl.SL.Height + 1
+// func NewSparkLinesFromData(s *SparkLinesData) *SparkLines {
+
+// 	s.SL
+
+// 	spark := ui.NewSparklines()
+// 	sparkLines := SparkLines{SL: spark, lines: s.SL}
+// 	h := defaultHeight
+// 	for _, sl := range s.SL {
+// 		h += sl.SL.Height + 1
+// 	}
+// 	spark.Height = h
+// 	spark.BorderLabelFg = ui.ColorGreen | ui.AttrBold
+// 	spark.Border = true
+// 	return &sparkLines
+// }
+
+func NewSparkLineFromData(db *DB.Influx, d ...DASH.SparkLineData) (lines []*SparkLine) {
+	for _, sl := range d {
+		s := ui.NewSparkline()
+		s.Height = sl.Height
+		spark := &SparkLine{SL: &s, D: sl, db: db}
+		lines = append(lines, spark)
 	}
-	spark.Height = h
-	spark.BorderLabelFg = ui.ColorGreen | ui.AttrBold
-	spark.Border = true
-	return &sparkLines
+	return lines
 }
+
+func NewSparkLinesFromData(db *DB.Influx, d DASH.SparkLinesData) *SparkLines {
+	uisparks := ui.NewSparklines()
+	sparks := SparkLines{SL: uisparks, lines: NewSparkLineFromData(db, d.SL...)}
+	return &sparks
+}
+
+// func NewSparkLines(s ...*SparkLine) *SparkLines {
+// 	spark := ui.NewSparklines()
+// 	sparkLines := SparkLines{SL: spark, lines: s}
+// 	h := defaultHeight
+// 	for _, sl := range s {
+// 		h += sl.SL.Height + 1
+// 	}
+// 	spark.Height = h
+// 	spark.BorderLabelFg = ui.ColorGreen | ui.AttrBold
+// 	spark.Border = true
+// 	return &sparkLines
+// }
 
 func (s *SparkLines) Sparks() *ui.Sparklines {
 	return s.SL
 }
 
-func NewSparkLine(s ui.Sparkline, from string, time string, db *DB.Influx, title string, where string) *SparkLine {
-	sl := &SparkLine{SL: &s, From: from, Time: time, db: db, Title: title, DataType: Short, Where: where}
-	return sl
-}
-
 func (s *SparkLines) Update() {
 	var uiSparks []ui.Sparkline
+	s.SetHeight()
 	for _, sl := range s.lines {
+
 		sl.SetData()
 		sl.SetTitle()
 		uiSparks = append(uiSparks, *sl.SL)
@@ -83,26 +118,34 @@ func buildQuery(sel string, from string, where string, time string, groupBy stri
 	}
 }
 
+func (s *SparkLines) SetHeight() {
+	h := defaultHeight
+	for _, sl := range s.lines {
+		h += sl.D.Height
+	}
+	s.Sparks().Height = h
+}
+
 func (s *SparkLine) SetData() {
 	// s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
-	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, fmt.Sprintf("GROUP BY time(%s)", defaultInterval)))
+	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.D.From, s.D.Where, s.D.Time, fmt.Sprintf("GROUP BY time(%s)", defaultInterval)))
 }
 
 func (s *SparkLine) SetTitle() {
 	// meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, s.Time, ""))
-	switch s.DataType {
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.D.From, s.D.Where, s.D.Time, ""))
+	maxTotal := getData(s.db, buildQuery("max(value)", s.D.From, s.D.Where, s.D.Time, ""))
+	switch s.D.DataType {
 	case Percent:
-		s.SL.Title = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Title, meanTotal[0], maxTotal[0])
+		s.SL.Title = fmt.Sprintf("%s mean:%v%% max:%v%%", s.D.Title, meanTotal[0], maxTotal[0])
 	case Bytes:
-		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, H.Bytes(uint64(meanTotal[0])), H.Bytes(uint64(maxTotal[0])))
+		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.D.Title, H.Bytes(uint64(meanTotal[0])), H.Bytes(uint64(maxTotal[0])))
 	case Short:
-		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, H.Comma(int64(meanTotal[0])), H.Comma(int64(maxTotal[0])))
-	case Time:
-		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, timecop.GetCommaString(float64(meanTotal[0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[0]), "nanoseconds"))
+		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.D.Title, H.Comma(int64(meanTotal[0])), H.Comma(int64(maxTotal[0])))
+	case NS:
+		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.D.Title, timecop.GetCommaString(float64(meanTotal[0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[0]), "nanoseconds"))
 	default:
-		log.Fatal("Data type is invalid: ", s.DataType)
+		log.Fatal("Data type is invalid: ", s.D.DataType)
 	}
 
 }

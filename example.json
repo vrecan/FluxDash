@@ -1,0 +1,1 @@
+{"sparklines":{"sparkline":[{"from":"/system.cpu/","time":"now - 15m","title":"CPU","where":"","dataType":"percent"}]}}
