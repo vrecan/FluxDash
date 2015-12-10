@@ -1,35 +1,19 @@
 package main
 
 import (
-	"io"
-	"os"
-	SYS "syscall"
-
 	ui "github.com/gizak/termui"
 	DBC "github.com/influxdb/influxdb/client/v2"
-	DEATH "github.com/vrecan/death"
 	// tm "github.com/nsf/termbox-go"
 	DB "github.com/vrecan/FluxDash/influx"
 	SL "github.com/vrecan/FluxDash/sparkline"
 )
 
 func main() {
-	var goRoutines []io.Closer
-	death := DEATH.NewDeath(SYS.SIGINT, SYS.SIGTERM)
 
-	theUi := closeUI{}
-	go theUi.Start()
-
-	goRoutines = append(goRoutines, closeUI{})
-	death.WaitForDeath(goRoutines...)
-
-	// fmt.Println("Exiting...")
-
+	Run()
 }
 
-type closeUI struct{}
-
-func (theUI closeUI) Start() {
+func Run() {
 	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "admin", Password: "logrhythm!1"}
 	db, err := DB.NewInflux(c)
 	if nil != err {
@@ -40,6 +24,7 @@ func (theUI closeUI) Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer ui.Close()
 
 	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
 		"/system.cpu/", "now() - 15m", db, "CPU", "")
@@ -97,11 +82,4 @@ func (theUI closeUI) Start() {
 	})
 
 	ui.Loop()
-	p, _ := os.FindProcess(os.Getpid())
-	p.Signal(os.Interrupt)
-}
-func (c closeUI) Close() error {
-	ui.StopLoop()
-	ui.Close()
-	return nil
 }
