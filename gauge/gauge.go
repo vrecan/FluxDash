@@ -38,19 +38,19 @@ func (s *Gauge) Gauges() *ui.Gauge {
 	return s.G
 }
 
-func (s *Gauge) Update() {
-	s.SetData()
-	s.SetTitle()
+func (s *Gauge) Update(time string) {
+	s.SetData(time)
+	s.SetTitle(time)
 }
 
-func (s *Gauge) SetData() {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
+func (s *Gauge) SetData(time string) {
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
 	s.G.Percent = meanTotal[0]
 }
 
-func (s *Gauge) SetTitle() {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
+func (s *Gauge) SetTitle(time string) {
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
+	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, time, ""))
 	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, meanTotal[0], maxTotal[0])
 }
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
