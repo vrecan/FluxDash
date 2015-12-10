@@ -59,7 +59,7 @@ func (s *BarChart) SetData() {
 	i := 0
 	for _, v := range labels {
 		series[i] = v[0]
-		items[i] = fmt.Sprintf("%s: %s", v[0], v[1])
+		items[i] = fmt.Sprintf("%s: %s, mean: %s", v[0], v[1])
 		i++
 	}
 	s.C.DataLabels = series

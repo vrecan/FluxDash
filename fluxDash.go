@@ -7,6 +7,7 @@ import (
 	BC "github.com/vrecan/FluxDash/barchart"
 	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
+	MS "github.com/vrecan/FluxDash/multispark"
 	SL "github.com/vrecan/FluxDash/sparkline"
 )
 
@@ -60,6 +61,14 @@ func Run() {
 		Title: "ES Shards",
 		Where: `"service"= 'gomaintain'`}
 	indices := BC.NewBarChart(db, iind)
+
+	dispatchi := MS.MultiSparkInfo{From: `/Dispatch.*/`,
+		Time:     "now() - 15m",
+		Title:    "Dispatch Info",
+		Where:    `"service"= 'godispatch'`,
+		DataType: 1,
+	}
+	dispatch := MS.NewMultiSpark(db, dispatchi)
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
@@ -68,6 +77,7 @@ func Run() {
 			ui.NewCol(12, 0, anubis.Sparks())),
 		ui.NewRow(diskUsed.GetColumns()...),
 		ui.NewRow(indices.GetColumns()...),
+		ui.NewRow(dispatch.GetColumns()...),
 	)
 
 	// calculate layout
@@ -76,6 +86,7 @@ func Run() {
 	anubis.Update()
 	diskUsed.Update()
 	indices.Update()
+	dispatch.Update()
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -90,7 +101,7 @@ func Run() {
 		anubis.Update()
 		diskUsed.Update()
 		indices.Update()
-
+		dispatch.Update()
 		ui.Render(ui.Body)
 
 	})
@@ -100,7 +111,7 @@ func Run() {
 		anubis.Update()
 		diskUsed.Update()
 		indices.Update()
-
+		dispatch.Update()
 		ui.Render(ui.Body)
 
 	})
