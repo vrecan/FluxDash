@@ -88,6 +88,15 @@ func Run() {
 		ui.StopLoop()
 
 	})
+	ui.Handle("/sys/kbd/<space>", func(e ui.Event) {
+		sp1.Update()
+		anubis.Update()
+		diskUsed.Update()
+		indices.Update()
+
+		ui.Render(ui.Body)
+
+	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
 
 		sp1.Update()
