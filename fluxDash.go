@@ -57,7 +57,7 @@ func Run() {
 	diskUsed := G.NewGauge(ui.ColorCyan, db, idisk)
 
 	iind := BC.BarChartInfo{From: `/es.*\.shards/`,
-		Time:  "now() - 15m",
+		Time:  "now() - 1m",
 		Title: "ES Shards",
 		Where: `"service"= 'gomaintain'`}
 	indices := BC.NewBarChart(db, iind)

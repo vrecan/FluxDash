@@ -52,14 +52,14 @@ func (s *BarChart) Update() {
 }
 
 func (s *BarChart) SetData() {
-	meanTotal, labels := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
+	meanTotal, labels := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
 	s.C.Data = meanTotal
 	series := make([]string, len(labels))
 	items := make([]string, len(labels))
 	i := 0
 	for _, v := range labels {
 		series[i] = v[0]
-		items[i] = fmt.Sprintf("%s: %s, mean: %s", v[0], v[1])
+		items[i] = fmt.Sprintf("%s: %s", v[0], v[1])
 		i++
 	}
 	s.C.DataLabels = series
