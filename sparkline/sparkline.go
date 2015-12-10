@@ -55,8 +55,8 @@ func (s *SparkLines) Sparks() *ui.Sparklines {
 	return s.SL
 }
 
-func NewSparkLine(s ui.Sparkline, from string, time string, db *DB.Influx, title string) *SparkLine {
-	sl := &SparkLine{SL: &s, From: from, Time: time, db: db, Title: title, DataType: Short}
+func NewSparkLine(s ui.Sparkline, from string, time string, db *DB.Influx, title string, where string) *SparkLine {
+	sl := &SparkLine{SL: &s, From: from, Time: time, db: db, Title: title, DataType: Short, Where: where}
 	return sl
 }
 
@@ -70,18 +70,26 @@ func (s *SparkLines) Update() {
 	s.SL.Lines = uiSparks
 }
 
+func buildQuery(sel string, from string, where string, time string, groupBy string) string {
+	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
+		log.Fatal("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, groupBy))
+	}
+	if len(where) > 0 {
+		return fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, time, groupBy)
+	} else {
+		return fmt.Sprintf("SELECT %s FROM %s WHERE time > %s %s", sel, from, time, groupBy)
+	}
+}
+
 func (s *SparkLine) SetData() {
-	s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
+	// s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
+	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, fmt.Sprintf("GROUP BY time(%s)", defaultInterval)))
 }
 
 func (s *SparkLine) SetTitle() {
-	meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
-	var maxTotal []int
-	if len(s.Where) > 0 {
-		maxTotal = getData(s.db, fmt.Sprintf("Select max(value) FROM %s WHERE %s AND time > %s", s.From, s.Time))
-	} else {
-		maxTotal = getData(s.db, fmt.Sprintf("Select max(value) FROM %s WHERE time > %s", s.From, s.Time))
-	}
+	// meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, ""))
+	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, s.Time, ""))
 	switch s.DataType {
 	case Percent:
 		s.SL.Title = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Title, meanTotal[0], maxTotal[0])
@@ -100,9 +108,10 @@ func getData(db *DB.Influx, q string) (data []int) {
 	if nil != err {
 		log.Fatal(err)
 	}
-	if len(r) < 1 {
+	if len(r) == 0 || len(r[0].Series) == 0 {
 		log.Fatal(q)
 	}
+
 	for _, row := range r[0].Series[0].Values {
 		_, err := time.Parse(time.RFC3339, row[0].(string))
 		if err != nil {
