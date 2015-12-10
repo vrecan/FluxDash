@@ -4,6 +4,8 @@ import (
 	ui "github.com/gizak/termui"
 	DBC "github.com/influxdb/influxdb/client/v2"
 	// tm "github.com/nsf/termbox-go"
+	BC "github.com/vrecan/FluxDash/barchart"
+	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
 	SL "github.com/vrecan/FluxDash/sparkline"
 )
@@ -47,17 +49,36 @@ func Run() {
 		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 
+	idisk := G.GaugeInfo{From: `/es\..*.FS.Used.Percent/`,
+		Time:  "now() - 15m",
+		Title: "Disk Percent Used",
+		Where: `"service"= 'gomaintain'`}
+	diskUsed := G.NewGauge(ui.ColorCyan, db, idisk)
+
+	iind := BC.BarChartInfo{From: `/es.*\.shards/`,
+		Time:  "now() - 15m",
+		Title: "ES Shards",
+		Where: `"service"= 'gomaintain'`}
+	indices := BC.NewBarChart(db, iind)
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
-			ui.NewCol(12, 0, anubis.Sparks())))
+			ui.NewCol(12, 0, anubis.Sparks())),
+		ui.NewRow(
+			ui.NewCol(12, 0, diskUsed.Gauges())),
+		ui.NewRow(
+			ui.NewCol(6, 0, indices.BarCharts()),
+			ui.NewCol(6, 0, indices.Labels())),
+	)
 
 	// calculate layout
 	ui.Body.Align()
 	sp1.Update()
 	anubis.Update()
+	diskUsed.Update()
+	indices.Update()
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -67,10 +88,22 @@ func Run() {
 		ui.StopLoop()
 
 	})
+	ui.Handle("/sys/kbd/<space>", func(e ui.Event) {
+		sp1.Update()
+		anubis.Update()
+		diskUsed.Update()
+		indices.Update()
+
+		ui.Render(ui.Body)
+
+	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
 
 		sp1.Update()
 		anubis.Update()
+		diskUsed.Update()
+		indices.Update()
+
 		ui.Render(ui.Body)
 
 	})
