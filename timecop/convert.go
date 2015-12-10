@@ -1,6 +1,9 @@
 package timecop
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type UnitInfo struct {
 	MinRounded float64
@@ -38,4 +41,12 @@ func GetRoundedTime(time float64, unit string) (newtime float64, newunit string,
 		return GetRoundedTime(time/currentUnits.NextRatio, currentUnits.Next)
 	}
 	return time, unit, nil
+}
+
+func GetCommaString(time float64, unit string) string {
+	newTime, newUnit, err := GetRoundedTime(time, unit)
+	if err != nil {
+		return "NaN"
+	}
+	return fmt.Sprintf("%d %s", int64(newTime), newUnit)
 }

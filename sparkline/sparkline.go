@@ -3,11 +3,13 @@ package sparkline
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
+
 	H "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
-	"log"
-	"time"
+	"github.com/vrecan/FluxDash/timecop"
 )
 
 type SparkLines struct {
@@ -89,6 +91,8 @@ func (s *SparkLine) SetTitle() {
 		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, H.Bytes(uint64(meanTotal[0])), H.Bytes(uint64(maxTotal[0])))
 	case Short:
 		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, H.Comma(int64(meanTotal[0])), H.Comma(int64(maxTotal[0])))
+	case Time:
+		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, timecop.GetCommaString(float64(meanTotal[0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[0]), "nanoseconds"))
 	default:
 		log.Fatal("Data type is invalid: ", s.DataType)
 	}

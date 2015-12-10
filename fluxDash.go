@@ -30,6 +30,7 @@ func main() {
 	memFree.DataType = SL.Bytes
 	gcPause := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
 		"/gc.pause.ns/", "now() - 15m", db, "GC Pause Time")
+	gcPause.DataType = SL.Time
 	sp1 := SL.NewSparkLines(cpu, memFree, gcPause)
 
 	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
