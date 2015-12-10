@@ -57,16 +57,16 @@ func (s *SparkLines) Sparks() *ui.Sparklines {
 	return s.SL
 }
 
-func NewSparkLine(s ui.Sparkline, from string, time string, db *DB.Influx, title string, where string) *SparkLine {
-	sl := &SparkLine{SL: &s, From: from, Time: time, db: db, Title: title, DataType: Short, Where: where}
+func NewSparkLine(s ui.Sparkline, from string, db *DB.Influx, title string, where string) *SparkLine {
+	sl := &SparkLine{SL: &s, From: from, db: db, Title: title, DataType: Short, Where: where}
 	return sl
 }
 
-func (s *SparkLines) Update() {
+func (s *SparkLines) Update(time string, groupBy string) {
 	var uiSparks []ui.Sparkline
 	for _, sl := range s.lines {
-		sl.SetData()
-		sl.SetTitle()
+		sl.SetData(time, groupBy)
+		sl.SetTitle(time)
 		uiSparks = append(uiSparks, *sl.SL)
 	}
 	s.SL.Lines = uiSparks
@@ -83,15 +83,15 @@ func buildQuery(sel string, from string, where string, time string, groupBy stri
 	}
 }
 
-func (s *SparkLine) SetData() {
+func (s *SparkLine) SetData(time string, groupBy string) {
 	// s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
-	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, fmt.Sprintf("GROUP BY time(%s)", defaultInterval)))
+	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.From, s.Where, time, groupBy))
 }
 
-func (s *SparkLine) SetTitle() {
+func (s *SparkLine) SetTitle(time string) {
 	// meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, s.Time, ""))
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, time, ""))
+	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, time, ""))
 	switch s.DataType {
 	case Percent:
 		s.SL.Title = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Title, meanTotal[0], maxTotal[0])
