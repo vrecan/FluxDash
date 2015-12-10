@@ -123,6 +123,8 @@ func TestConvert(t *testing.T) {
 		So(thing, ShouldEqual, "10 seconds")
 		thing = GetCommaString(60, "seconds")
 		So(thing, ShouldEqual, "1 minutes")
+		thing = GetCommaString(10000, "millenia")
+		So(thing, ShouldEqual, "10,000 millenia")
 	})
 	Convey("bad unit CommaString", t, func() {
 		thing := GetCommaString(1, "s")

@@ -3,6 +3,8 @@ package timecop
 import (
 	"errors"
 	"fmt"
+
+	H "github.com/dustin/go-humanize"
 )
 
 //UnitInfo that describes the bounding box, previous and subsequent unit
@@ -60,5 +62,5 @@ func GetCommaString(time float64, unit string) string {
 	if err != nil {
 		return "NaN"
 	}
-	return fmt.Sprintf("%d %s", int64(newTime), newUnit)
+	return fmt.Sprintf("%s %s", H.Comma(int64(newTime)), newUnit)
 }
