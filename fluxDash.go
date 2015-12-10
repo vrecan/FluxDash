@@ -11,16 +11,10 @@ import (
 
 func main() {
 
-	theUi := closeUI{}
-	theUi.Start()
-
-	// fmt.Println("Exiting...")
-
+	Run()
 }
 
-type closeUI struct{}
-
-func (theUI closeUI) Start() {
+func Run() {
 	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "admin", Password: "logrhythm!1"}
 	db, err := DB.NewInflux(c)
 	if nil != err {
@@ -31,6 +25,7 @@ func (theUI closeUI) Start() {
 	if err != nil {
 		panic(err)
 	}
+	defer ui.Close()
 
 	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
 		"/system.cpu/", "now() - 15m", db, "CPU", "")
@@ -53,17 +48,11 @@ func (theUI closeUI) Start() {
 		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 
-	diskUsed := G.NewGauge(ui.Gauge{Percent: 99,
-		BarColor:                ui.ColorCyan | ui.AttrBold,
-		PercentColor:            ui.ColorRed | ui.AttrBold,
-		PercentColorHighlighted: ui.ColorMagenta | ui.AttrBold,
-	},
-		`/es\..*.FS.Used.Percent/`,
-		"now() - 15m",
-		db, "Disk Percent Used", `"service"= 'gomaintain'`)
-
-	diskUsed.G.Width = 50
-	diskUsed.G.Height = 3
+	i := G.GaugeInfo{From: `/es\..*.FS.Used.Percent/`,
+		Time:  "now() - 15m",
+		Title: "Disk Percent Used",
+		Where: `"service"= 'gomaintain'`}
+	diskUsed := G.NewGauge(ui.ColorCyan, db, i)
 
 	// build layout
 	ui.Body.AddRows(
@@ -104,11 +93,4 @@ func (theUI closeUI) Start() {
 	})
 
 	ui.Loop()
-	ui.Close()
-
-}
-func (c closeUI) Close() error {
-	ui.StopLoop()
-	ui.Close()
-	return nil
 }

@@ -10,17 +10,27 @@ import (
 	DB "github.com/vrecan/FluxDash/influx"
 )
 
-type Gauge struct {
-	G     *ui.Gauge
+type GaugeInfo struct {
 	From  string
 	Time  string
-	db    *DB.Influx
 	Title string
 	Where string
 }
 
-func NewGauge(s ui.Gauge, from string, time string, db *DB.Influx, title string, where string) *Gauge {
-	g := &Gauge{G: &s, From: from, Time: time, db: db, Title: title, Where: where}
+type Gauge struct {
+	I  GaugeInfo
+	G  *ui.Gauge
+	db *DB.Influx
+}
+
+func NewGauge(barColor ui.Attribute, db *DB.Influx, info GaugeInfo) *Gauge {
+
+	g := &Gauge{G: ui.NewGauge(), db: db, I: info}
+	g.G.BarColor = barColor
+	// g.G.PercentColor = ui.ColorRed
+	// g.G.PercentColorHighlighted = ui.ColorMagenta
+	g.G.Width = 50
+	g.G.Height = 3
 	return g
 }
 
@@ -34,14 +44,14 @@ func (s *Gauge) Update() {
 }
 
 func (s *Gauge) SetData() {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, ""))
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
 	s.G.Percent = meanTotal[0]
 }
 
 func (s *Gauge) SetTitle() {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, s.Time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, s.Time, ""))
-	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Title, meanTotal[0], maxTotal[0])
+	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, s.I.Time, ""))
+	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, s.I.Time, ""))
+	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, meanTotal[0], maxTotal[0])
 }
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
 	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
