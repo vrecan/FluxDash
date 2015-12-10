@@ -1,64 +1,73 @@
 package main
 
 import (
-	log "github.com/cihub/seelog"
 	ui "github.com/gizak/termui"
-	tm "github.com/nsf/termbox-go"
-	C "github.com/vrecan/FluxDash/c"
+	DBC "github.com/influxdb/influxdb/client/v2"
+	// tm "github.com/nsf/termbox-go"
 	DB "github.com/vrecan/FluxDash/influx"
-	SPARK "github.com/vrecan/FluxDash/spark"
-	"time"
+	SL "github.com/vrecan/FluxDash/sparkline"
 )
 
 func main() {
-	c, err := C.GetConf(".")
+	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "admin", Password: "logrhythm!1"}
+	db, err := DB.NewInflux(c)
 	if nil != err {
-		log.Critical(err)
+		panic(err)
 	}
-
-	db, err := DB.NewInflux(&c.DB)
+	// fmt.Println(db)
 
 	err = ui.Init()
 	if err != nil {
 		panic(err)
 	}
 	defer ui.Close()
-	var sparks *SPARK.Sparks
 
-	draw := func() {
-		sparks, err = SPARK.NewSparks(SPARK.SparksConf{
-			Query:  "select mean(value) from /default\\.localhost\\.vitals\\.system\\.cpu\\..*/ where time > now() - 30m group by time(5s) fill(0) order asc",
-			Title:  "WOOO",
-			Width:  50,
-			Height: 50,
-		}, db)
-		if nil != err {
-			log.Error(err)
-		}
-		ui.Render(sparks.Render())
-	}
+	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
+		"/system.cpu/", "now() - 15m", db, "CPU")
+	cpu.DataType = SL.Percent
+	memFree := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+		"/system.mem.free/", "now() - 15m", db, "MEM Free")
+	memFree.DataType = SL.Bytes
+	gcPause := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+		"/gc.pause.ns/", "now() - 15m", db, "GC Pause Time")
+	sp1 := SL.NewSparkLines(cpu, memFree, gcPause)
 
-	draw()
+	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+		"/Relay.IncomingMessages/", "now() - 15m", db, "Relay Incomming")
+	anubis := SL.NewSparkLines(relayIncoming)
+
+	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(12, 0, sparks.Render())))
-	ui.Body.Align()
+			ui.NewCol(12, 0, sp1.Sparks())),
+		ui.NewRow(
+			ui.NewCol(12, 0, anubis.Sparks())))
 
-	evt := make(chan tm.Event)
-	go func() {
-		for {
-			evt <- tm.PollEvent()
-		}
-	}()
-	ticker := time.NewTicker(1 * time.Second)
-	for {
-		select {
-		case e := <-evt:
-			if e.Type == tm.EventKey && e.Ch == 'q' {
-				return
-			}
-		case <-ticker.C:
-			draw()
-		}
-	}
+	// calculate layout
+	ui.Body.Align()
+	sp1.Update()
+	anubis.Update()
+	ui.Render(ui.Body)
+
+	ui.Handle("/sys/kbd/q", func(ui.Event) {
+		ui.StopLoop()
+	})
+	ui.Handle("/timer/1s", func(e ui.Event) {
+
+		sp1.Update()
+		anubis.Update()
+		ui.Render(ui.Body)
+
+	})
+
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		ui.Body.Width = ui.TermWidth()
+		ui.Body.Align()
+		ui.Render(ui.Body)
+	})
+
+	ui.Loop()
+
+	// fmt.Println("Exiting...")
+
 }
