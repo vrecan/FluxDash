@@ -11,10 +11,12 @@ import (
 )
 
 type GaugeInfo struct {
-	From  string
-	Time  string
-	Title string
-	Where string
+	From   string
+	Time   string
+	Title  string
+	Where  string
+	Height int
+	Border bool
 }
 
 type Gauge struct {
@@ -29,8 +31,9 @@ func NewGauge(barColor ui.Attribute, db *DB.Influx, info GaugeInfo) *Gauge {
 	g.G.BarColor = barColor
 	// g.G.PercentColor = ui.ColorRed
 	// g.G.PercentColorHighlighted = ui.ColorMagenta
-	g.G.Width = 50
-	g.G.Height = 3
+	g.G.Border = info.Border
+	g.G.Height = info.Height
+	g.G.Label = info.Title
 	return g
 }
 
@@ -52,9 +55,6 @@ func (s *Gauge) SetTitle(time string) {
 	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
 	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, time, ""))
 	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, meanTotal[0], maxTotal[0])
-}
-func (s *Gauge) GetColumns() []*ui.Row {
-	return []*ui.Row{ui.NewCol(12, 0, s.Gauges())}
 }
 func buildQuery(sel string, from string, where string, time string, groupBy string) string {
 	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
