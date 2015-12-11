@@ -3,6 +3,7 @@ package dashboards
 import (
 	// DBC "github.com/influxdb/influxdb/client/v2"
 	"fmt"
+
 	ui "github.com/gizak/termui"
 	// BC "github.com/vrecan/FluxDash/barchart"
 	G "github.com/vrecan/FluxDash/gauge"
