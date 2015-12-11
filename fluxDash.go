@@ -44,9 +44,6 @@ func Run() {
 	memBuffers := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
 		"/system.mem.buffers/", db, "MEM Buffers", "")
 	memBuffers.DataType = SL.Bytes
-	// gcPause := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
-	// 	"/gc.pause.ns/", db, "GC Pause Time", "")
-	// gcPause.DataType = SL.Time
 	sp1 := SL.NewSparkLines(cpu, memFree, memCached, memBuffers)
 	sp1.SL.Block.BorderLabel = "System"
 
@@ -74,7 +71,7 @@ func Run() {
 	dispatchi := MS.MultiSparkInfo{From: `/Dispatch.*/`,
 		Title:    "Dispatch",
 		Where:    `"service"= 'godispatch'`,
-		DataType: 1,
+		DataType: MS.Short,
 	}
 	dispatch := MS.NewMultiSpark(db, dispatchi)
 	// build layout
@@ -102,7 +99,6 @@ func Run() {
 		dispatch.Update(qTime, interval)
 		ui.Render(ui.Body)
 	}
-	updateAll()
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
@@ -147,6 +143,6 @@ func Run() {
 		ui.Body.Align()
 		ui.Render(ui.Body)
 	})
-
+	updateAll()
 	ui.Loop()
 }

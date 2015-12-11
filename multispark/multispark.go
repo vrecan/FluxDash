@@ -84,6 +84,7 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	}
 	if s.SL == nil {
 		s.SL = ui.NewSparklines(uiSparks...)
+		s.SL.BorderLabel = s.I.Title
 	} else {
 		s.SL.Lines = uiSparks
 	}
