@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	ui "github.com/gizak/termui"
 	DBC "github.com/influxdb/influxdb/client/v2"
-	// tm "github.com/nsf/termbox-go"
 	BC "github.com/vrecan/FluxDash/barchart"
 	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
@@ -20,6 +18,7 @@ func main() {
 }
 
 func Run() {
+	counter := uint64(0)
 	time := TS.TimeSelect{}
 	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "admin", Password: "logrhythm!1"}
 	db, err := DB.NewInflux(c)
@@ -32,6 +31,7 @@ func Run() {
 		panic(err)
 	}
 	defer ui.Close()
+
 	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
 		"/system.cpu/", db, "CPU", "")
 	cpu.DataType = SL.Percent
@@ -54,8 +54,8 @@ func Run() {
 		"/Relay.IncomingMessages/", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 	anubis.SL.Block.BorderLabel = "Anubis"
-	dt, di := time.DisplayTimes()
-	displayTimes := fmt.Sprintf("Time: %s Interval: %s", dt, di)
+	dt, di, dr := time.DisplayTimes()
+	displayTimes := fmt.Sprintf("Time: %s Interval: %s Refresh: %vs", dt, di, dr)
 	_times := ui.NewPar(displayTimes)
 	_times.Height = 1
 	_times.Border = false
@@ -64,7 +64,6 @@ func Run() {
 		Title: "Disk Percent Used",
 		Where: `"service"= 'gomaintain'`}
 	diskUsed := G.NewGauge(ui.ColorCyan, db, idisk)
-
 	iind := BC.BarChartInfo{From: `/es.*\.shards/`,
 		Time:  "now() - 1m",
 		Title: "ES Shards",
@@ -86,6 +85,8 @@ func Run() {
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
 			ui.NewCol(12, 0, anubis.Sparks())),
+		ui.NewRow(
+			ui.NewCol(12, 0, diskUsed.Gauges())),
 		ui.NewRow(diskUsed.GetColumns()...),
 		ui.NewRow(indices.GetColumns()...),
 		ui.NewRow(dispatch.GetColumns()...),
@@ -93,13 +94,17 @@ func Run() {
 
 	// calculate layout
 	ui.Body.Align()
-	qTime, interval := time.CurTime()
-	sp1.Update(qTime, interval)
-	anubis.Update(qTime, interval)
-	diskUsed.Update(qTime)
-	indices.Update(qTime)
-	dispatch.Update(qTime, interval)
-	ui.Render(ui.Body)
+	qTime, interval, refresh := time.CurTime()
+
+	updateAll := func() {
+		sp1.Update(qTime, interval)
+		anubis.Update(qTime, interval)
+		diskUsed.Update(qTime)
+		indices.Update(qTime)
+		dispatch.Update(qTime, interval)
+		ui.Render(ui.Body)
+	}
+	updateAll()
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
@@ -107,41 +112,35 @@ func Run() {
 	//adjust time range
 	ui.Handle("/sys/kbd/t", func(ui.Event) {
 
-		qTime, interval = time.NextTime()
-		dt, di = time.DisplayTimes()
-		displayTimes = fmt.Sprintf("Time: %s Interval: %s", dt, di)
+		qTime, interval, refresh = time.NextTime()
+		dt, di, dr = time.DisplayTimes()
+		displayTimes = fmt.Sprintf("Time: %s Interval: %s Refresh: %vs", dt, di, dr)
 		_times.Text = displayTimes
 		ui.Render(ui.Body)
+		updateAll()
 	})
 
 	ui.Handle("/sys/kbd/y", func(ui.Event) {
 
-		qTime, interval = time.PrevTime()
-		dt, di = time.DisplayTimes()
-		displayTimes = fmt.Sprintf("Time: %s Interval: %s", dt, di)
+		qTime, interval, refresh = time.PrevTime()
+		dt, di, dr = time.DisplayTimes()
+		displayTimes = fmt.Sprintf("Time: %s Interval: %s Refresh: %vs", dt, di, dr)
 		_times.Text = displayTimes
 		ui.Render(ui.Body)
+		updateAll()
 	})
 	ui.Handle("/sys/kbd/C-c", func(ui.Event) {
 		ui.StopLoop()
 
 	})
 	ui.Handle("/sys/kbd/<space>", func(e ui.Event) {
-		sp1.Update(qTime, interval)
-		anubis.Update(qTime, interval)
-		diskUsed.Update(qTime)
-		indices.Update(qTime)
-		dispatch.Update(qTime, interval)
-		ui.Render(ui.Body)
-
+		updateAll()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		sp1.Update(qTime, interval)
-		anubis.Update(qTime, interval)
-		diskUsed.Update(qTime)
-		indices.Update(qTime)
-		dispatch.Update(qTime, interval)
-		ui.Render(ui.Body)
+		counter++
+		if counter%uint64(refresh) == 0 {
+			updateAll()
+		}
 
 	})
 
