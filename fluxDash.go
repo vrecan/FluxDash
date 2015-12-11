@@ -15,7 +15,8 @@ func main() {
 	sys := DASH.NewSystem(db)
 	carp := DASH.NewCarpenter(db)
 	disp := DASH.NewGoDispatch(db)
-	d := DASH.NewMonitor(sys, carp, disp)
+	maintenance := DASH.NewMaintenance(db)
+	d := DASH.NewMonitor(sys, carp, disp, maintenance)
 	d.Start()
 
 }
