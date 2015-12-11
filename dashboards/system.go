@@ -14,14 +14,15 @@ import (
 
 type System struct {
 	Monitor  *SL.SparkLines
-	Anubis   *SL.SparkLines
+	Anubis   *MS.MultiSpark
 	Disk     *G.Gauge
 	Indices  *BC.BarChart
 	Dispatch *MS.MultiSpark
-	Time     *TS.TimeSelect
 	TimePar  *ui.Par
-	db       *DB.Influx
-	Grid     *ui.Grid
+
+	Time *TS.TimeSelect
+	db   *DB.Influx
+	Grid *ui.Grid
 }
 
 func NewSystem(db *DB.Influx) *System {
@@ -43,15 +44,13 @@ func (s *System) Create() {
 	memBuffers.DataType = SL.Bytes
 	s.Monitor = SL.NewSparkLines(cpu, memFree, memCached, memBuffers)
 	s.Monitor.SL.Block.BorderLabel = "System"
-	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
-		"/Relay.IncomingMessages/", s.db, "Relay Incomming", `"service"= 'anubis'`)
-	s.Anubis = SL.NewSparkLines(relayIncoming)
-	s.Anubis.SL.Block.BorderLabel = "Anubis"
+
 	dt, di, dr := s.Time.DisplayTimes()
 	displayTimes := fmt.Sprintf("Time: %s Interval: %s Refresh: %vs", dt, di, dr)
 	s.TimePar = ui.NewPar(displayTimes)
 	s.TimePar.Height = 3
 	s.TimePar.Border = true
+
 	idisk := G.GaugeInfo{From: `/es\..*.FS.Used.Percent/`,
 		Title:  "Disk Percent Used",
 		Height: 3,
@@ -63,6 +62,13 @@ func (s *System) Create() {
 		Height: 10,
 		Where:  `"service"= 'gomaintain'`}
 	s.Indices = BC.NewBarChart(s.db, iind)
+
+	anubisi := MS.MultiSparkInfo{From: `/Relay\.(IncomingMessages|MalformedMessages)/`,
+		Title:    "Anubis Relay",
+		Where:    `"service"= 'anubis'`,
+		DataType: MS.Short,
+	}
+	s.Anubis = MS.NewMultiSpark(s.db, anubisi)
 
 	dispatchi := MS.MultiSparkInfo{From: `/Dispatch.*/`,
 		Title:    "Dispatch",
@@ -81,10 +87,9 @@ func (s *System) Create() {
 			ui.NewCol(6, 0, s.Disk.Gauges())),
 		ui.NewRow(
 			ui.NewCol(12, 0, s.Monitor.Sparks())),
-		ui.NewRow(
-			ui.NewCol(12, 0, s.Anubis.Sparks())),
-		ui.NewRow(s.Indices.GetColumns()...),
+		ui.NewRow(s.Anubis.GetColumns()...),
 		ui.NewRow(s.Dispatch.GetColumns()...),
+		ui.NewRow(s.Indices.GetColumns()...),
 	)
 	// calculate layout
 	grid.Align()

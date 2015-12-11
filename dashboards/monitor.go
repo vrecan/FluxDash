@@ -114,11 +114,9 @@ func (m *Monitor) run() {
 
 func (m *Monitor) StartDash() {
 	m.cDash = m.Dashes[m.dashPos]
-	if m.cDash.GetGrid() == nil {
-		m.cDash.Create()
-	}
+	m.cDash.Create()
 	m.cDash.UpdateAll(m.time)
-	ui.Render(m.cDash.GetGrid())
+
 }
 
 func (m *Monitor) NextDash() {
@@ -127,7 +125,9 @@ func (m *Monitor) NextDash() {
 		m.dashPos = 0
 	}
 	m.cDash = m.Dashes[m.dashPos]
+	ui.Clear()
 	m.StartDash()
+	ui.Render(m.cDash.GetGrid())
 }
 func (m *Monitor) Close() error {
 	ui.StopLoop()
