@@ -1,10 +1,41 @@
 package dashboards
 
 import (
+	"sync"
+
 	ui "github.com/gizak/termui"
 	TS "github.com/vrecan/FluxDash/timeselect"
 	// "log"
 )
+
+const (
+	KBD_Q     = 1
+	KBD_T     = 2
+	KBD_Y     = 3
+	KBD_SPACE = 4
+	KBD_N     = 5
+	TIME      = 6
+	RESIZE    = 7
+)
+
+type Event struct {
+	Type int
+}
+
+func CommandQ(inputQ chan Event, done chan bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+loop:
+	for {
+		select {
+		case <-done:
+			break loop
+		case e := <-inputQ:
+			if e.Type == KBD_Q {
+				ui.StopLoop()
+			}
+		}
+	}
+}
 
 type Monitor struct {
 	time    *TS.TimeSelect
