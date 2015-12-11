@@ -11,10 +11,11 @@ import (
 )
 
 type BarChartInfo struct {
-	From  string
-	Time  string
-	Title string
-	Where string
+	From   string
+	Time   string
+	Title  string
+	Where  string
+	Height int
 }
 
 type BarChart struct {
@@ -29,12 +30,9 @@ func NewBarChart(db *DB.Influx, info BarChartInfo) *BarChart {
 	list := ui.NewList()
 	g := &BarChart{C: barchart, L: list, db: db, I: info}
 	g.C.DataLabels = make([]string, 0)
-	g.C.Height = 10
-	g.C.Width = 10
-	g.L.Width = 10
-	g.L.Height = 10
-	g.L.BorderLabel = "Shard States"
-	g.L.Y = 0
+	g.C.Height = info.Height
+	g.L.Height = info.Height
+	g.L.BorderLabel = info.Title
 	// g.L.ItemFgColor = ui.ColorBlack
 	// g.L.ItemBgColor = ui.ColorWhite
 	return g

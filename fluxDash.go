@@ -32,62 +32,57 @@ func Run() {
 	}
 	defer ui.Close()
 
-	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed | ui.AttrBold},
+	cpu := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorRed},
 		"/system.cpu/", db, "CPU", "")
 	cpu.DataType = SL.Percent
-	memFree := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+	memFree := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
 		"/system.mem.free/", db, "MEM Free", "")
 	memFree.DataType = SL.Bytes
-	memCached := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+	memCached := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
 		"/system.mem.cached/", db, "MEM Cached", "")
 	memCached.DataType = SL.Bytes
-	memBuffers := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+	memBuffers := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
 		"/system.mem.buffers/", db, "MEM Buffers", "")
 	memBuffers.DataType = SL.Bytes
-	gcPause := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
-		"/gc.pause.ns/", db, "GC Pause Time", "")
-	gcPause.DataType = SL.Time
-	sp1 := SL.NewSparkLines(cpu, memFree, memCached, memBuffers, gcPause)
+	sp1 := SL.NewSparkLines(cpu, memFree, memCached, memBuffers)
 	sp1.SL.Block.BorderLabel = "System"
 
-	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue | ui.AttrBold},
+	relayIncoming := SL.NewSparkLine(ui.Sparkline{Height: 1, LineColor: ui.ColorBlue},
 		"/Relay.IncomingMessages/", db, "Relay Incomming", `"service"= 'anubis'`)
 	anubis := SL.NewSparkLines(relayIncoming)
 	anubis.SL.Block.BorderLabel = "Anubis"
 	dt, di, dr := time.DisplayTimes()
 	displayTimes := fmt.Sprintf("Time: %s Interval: %s Refresh: %vs", dt, di, dr)
 	_times := ui.NewPar(displayTimes)
-	_times.Height = 1
-	_times.Border = false
+	_times.Height = 3
+	_times.Border = true
 	idisk := G.GaugeInfo{From: `/es\..*.FS.Used.Percent/`,
-		Time:  "now() - 15m",
-		Title: "Disk Percent Used",
-		Where: `"service"= 'gomaintain'`}
+		Title:  "Disk Percent Used",
+		Height: 3,
+		Border: true,
+		Where:  `"service"= 'gomaintain'`}
 	diskUsed := G.NewGauge(ui.ColorCyan, db, idisk)
 	iind := BC.BarChartInfo{From: `/es.*\.shards/`,
-		Time:  "now() - 1m",
-		Title: "ES Shards",
-		Where: `"service"= 'gomaintain'`}
+		Title:  "ES Shards",
+		Height: 10,
+		Where:  `"service"= 'gomaintain'`}
 	indices := BC.NewBarChart(db, iind)
 
 	dispatchi := MS.MultiSparkInfo{From: `/Dispatch.*/`,
-		Time:     "now() - 15m",
-		Title:    "Dispatch Info",
+		Title:    "Dispatch",
 		Where:    `"service"= 'godispatch'`,
-		DataType: 1,
+		DataType: MS.Short,
 	}
 	dispatch := MS.NewMultiSpark(db, dispatchi)
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(4, 0, _times)),
+			ui.NewCol(6, 0, _times),
+			ui.NewCol(6, 0, diskUsed.Gauges())),
 		ui.NewRow(
 			ui.NewCol(12, 0, sp1.Sparks())),
 		ui.NewRow(
 			ui.NewCol(12, 0, anubis.Sparks())),
-		ui.NewRow(
-			ui.NewCol(12, 0, diskUsed.Gauges())),
-		ui.NewRow(diskUsed.GetColumns()...),
 		ui.NewRow(indices.GetColumns()...),
 		ui.NewRow(dispatch.GetColumns()...),
 	)
@@ -104,7 +99,6 @@ func Run() {
 		dispatch.Update(qTime, interval)
 		ui.Render(ui.Body)
 	}
-	updateAll()
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
@@ -149,6 +143,6 @@ func Run() {
 		ui.Body.Align()
 		ui.Render(ui.Body)
 	})
-
+	updateAll()
 	ui.Loop()
 }
