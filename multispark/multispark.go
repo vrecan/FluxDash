@@ -26,11 +26,14 @@ const (
 )
 
 type MultiSparkInfo struct {
-	From     string
-	Time     string
-	Title    string
-	Where    string
-	DataType int
+	From       string
+	Time       string
+	Title      string
+	Where      string
+	DataType   int
+	SpanSize   int
+	LineColor  ui.Attribute
+	TitleColor ui.Attribute
 }
 
 type MultiSpark struct {
@@ -68,6 +71,8 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	for i, _ := range data {
 		line := ui.NewSparkline()
 		line.Data = data[i]
+		line.LineColor = s.I.LineColor
+		line.TitleColor = s.I.TitleColor
 		switch s.I.DataType {
 		case Percent:
 			line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
@@ -84,10 +89,10 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	}
 	if s.SL == nil {
 		s.SL = ui.NewSparklines(uiSparks...)
-		s.SL.BorderLabel = s.I.Title
 	} else {
 		s.SL.Lines = uiSparks
 	}
+	s.SL.BorderLabel = s.I.Title
 
 	s.SL.Height = 3 + len(data)*2
 
