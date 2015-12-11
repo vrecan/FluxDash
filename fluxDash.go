@@ -13,8 +13,9 @@ func main() {
 		panic(err)
 	}
 	sys := DASH.NewSystem(db)
-	ins := DASH.NewInsert(db)
-	d := DASH.NewMonitor(sys, ins)
+	carp := DASH.NewCarpenter(db)
+	disp := DASH.NewGoDispatch(db)
+	d := DASH.NewMonitor(sys, carp, disp)
 	d.Start()
 
 }
