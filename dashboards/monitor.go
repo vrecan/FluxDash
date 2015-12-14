@@ -2,6 +2,7 @@ package dashboards
 
 import (
 	"sync"
+	"time"
 
 	ui "github.com/gizak/termui"
 	TS "github.com/vrecan/FluxDash/timeselect"
@@ -25,18 +26,21 @@ type Event struct {
 	Monitor *Monitor
 }
 
-func CommandQ(inputQ chan Event, done chan bool, wg *sync.WaitGroup) {
+func CommandQ(inputQ <-chan interface{}, done chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	counter := uint64(0)
+	timeDebounceChan := make(chan interface{}, 1000)
+	TimeChangeChan := make(chan interface{}, 1)
+	go DebounceChan(timeDebounceChan, 100*time.Nanosecond, TimeChangeChan)
 loop:
 	for {
 		select {
 		case <-done:
 			break loop
-		case e := <-inputQ:
-			if e.Type == KBD_Q {
-				ui.StopLoop()
-			} else if e.Type == KBD_T {
+
+		case event := <-TimeChangeChan:
+			e := event.(Event)
+			if e.Type == KBD_T {
 				e.Time.NextTime()
 				(*e.Dash).UpdateAll(e.Time)
 			} else if e.Type == KBD_Y {
@@ -50,6 +54,20 @@ loop:
 				if counter%uint64(refresh) == 0 {
 					(*e.Dash).UpdateAll(e.Time)
 				}
+			}
+
+		case event := <-inputQ:
+			e := event.(Event)
+			if e.Type == KBD_Q {
+				ui.StopLoop()
+			} else if e.Type == KBD_T {
+				timeDebounceChan <- e
+			} else if e.Type == KBD_Y {
+				timeDebounceChan <- e
+			} else if e.Type == KBD_SPACE {
+				timeDebounceChan <- e
+			} else if e.Type == TIME {
+				timeDebounceChan <- e
 			} else if e.Type == KBD_N {
 				e.Monitor.NextDash()
 			} else if e.Type == RESIZE {
@@ -59,6 +77,31 @@ loop:
 			}
 		}
 	}
+}
+
+func DebounceChan(input chan interface{}, wait time.Duration, res chan interface{}) {
+	var dRes interface{}
+	timer := time.NewTimer(wait)
+	timer.Stop()
+	var started bool
+	for {
+		select {
+		case d, ok := <-input:
+			if !ok {
+				break
+			}
+			if !started {
+				timer.Reset(wait)
+				started = true
+			}
+			dRes = d
+		case <-timer.C:
+			timer.Stop()
+			started = false
+			res <- dRes
+		}
+	}
+	timer.Stop()
 }
 
 type Monitor struct {
@@ -91,11 +134,15 @@ func (m *Monitor) run() {
 	defer ui.Close()
 	m.time.CurTime()
 
-	inputQ := make(chan Event, 100)
+	inputQ := make(chan interface{}, 100)
+	//debounce all input
+	debouncedInput := make(chan interface{}, 1)
+	go DebounceChan(inputQ, 1*time.Millisecond, debouncedInput)
+
 	done := make(chan bool)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	go CommandQ(inputQ, done, wg)
+	go CommandQ(debouncedInput, done, wg)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		inputQ <- Event{Type: KBD_Q}
