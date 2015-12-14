@@ -139,6 +139,7 @@ func (m *Monitor) StartDash() {
 		m.cDash.Create()
 	}
 	m.cDash.UpdateAll(m.time)
+	ui.Clear()
 	ui.Render(m.cDash.GetGrid())
 }
 
