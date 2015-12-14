@@ -31,7 +31,7 @@ func CommandQ(inputQ <-chan interface{}, done chan bool, wg *sync.WaitGroup) {
 	counter := uint64(0)
 	timeDebounceChan := make(chan interface{}, 1000)
 	TimeChangeChan := make(chan interface{}, 1)
-	go DebounceChan(timeDebounceChan, 100*time.Nanosecond, TimeChangeChan)
+	go DebounceChan(timeDebounceChan, 13*time.Millisecond, TimeChangeChan)
 loop:
 	for {
 		select {
@@ -135,14 +135,11 @@ func (m *Monitor) run() {
 	m.time.CurTime()
 
 	inputQ := make(chan interface{}, 100)
-	//debounce all input
-	debouncedInput := make(chan interface{}, 1)
-	go DebounceChan(inputQ, 1*time.Millisecond, debouncedInput)
 
 	done := make(chan bool)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	go CommandQ(debouncedInput, done, wg)
+	go CommandQ(inputQ, done, wg)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		inputQ <- Event{Type: KBD_Q}
