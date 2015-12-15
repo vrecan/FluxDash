@@ -107,10 +107,37 @@ func (s *System) UpdateAll(time *TS.TimeSelect) {
 	s.TimePar.Text = displayTimes
 	ctime, interval, _ := s.Time.CurTime()
 	ui.Render(s.Grid)
-	s.Monitor.Update(ctime, interval)
-	s.Anubis.Update(ctime, interval)
-	s.Disk.Update(ctime)
-	s.Indices.Update(ctime)
-	s.Dispatch.Update(ctime, interval)
+	finished := make(chan bool, 5)
+	go func() {
+		s.Monitor.Update(ctime, interval)
+		finished <- true
+	}()
+	go func() {
+		s.Anubis.Update(ctime, interval)
+		finished <- true
+	}()
+	go func() {
+		s.Disk.Update(ctime)
+		finished <- true
+	}()
+	go func() {
+		s.Indices.Update(ctime)
+		finished <- true
+	}()
+
+	go func() {
+		s.Dispatch.Update(ctime, interval)
+		finished <- true
+	}()
+	expect := 5
+	c := 0
+	for _ = range finished {
+		c++
+		if c == expect {
+			break
+		}
+
+	}
 	ui.Render(s.Grid)
+	close(finished)
 }
