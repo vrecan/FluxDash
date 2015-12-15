@@ -8,23 +8,22 @@ import (
 	DB "github.com/vrecan/FluxDash/influx"
 	"github.com/vrecan/FluxDash/query"
 	"github.com/vrecan/FluxDash/timecop"
-	"time"
 )
 
 type SparkLines struct {
-	SL      *ui.Sparklines
-	Refresh time.Duration
-	lines   []*SparkLine
+	SL    *ui.Sparklines `json:"-"`
+	lines []*SparkLine   `json:"lines"`
 }
 
 type SparkLine struct {
-	SL       *ui.Sparkline
-	From     string
-	Time     string
-	db       *DB.Influx
-	Title    string
-	Where    string
-	DataType int
+	SL       *ui.Sparkline `json:"-"`
+	From     string        `json:"from"`
+	Time     string        `json:"time"`
+	db       *DB.Influx    `json:"-"`
+	Title    string        `json:"title"`
+	Where    string        `json:"where"`
+	DataType int           `json:"type"`
+	Height   int           `json:"height"`
 }
 
 const (
@@ -54,6 +53,14 @@ func NewSparkLines(s ...*SparkLine) *SparkLines {
 
 func (s *SparkLines) Sparks() *ui.Sparklines {
 	return s.SL
+}
+
+func NewSparkLinex(s *SparkLine, db *DB.Influx) {
+	s.db = db
+	spark := ui.NewSparkline()
+	s.SL = &spark
+	s.SL.Height = s.Height
+	s.SL.Title = s.Title
 }
 
 func NewSparkLine(s ui.Sparkline, from string, db *DB.Influx, title string, where string) *SparkLine {
