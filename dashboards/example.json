@@ -1,0 +1,58 @@
+{
+	"rows": [{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"widget": {
+				"lines": [{
+					"from": "/system.cpu/",
+					"time": "",
+					"title": "CPU",
+					"where": "",
+					"type": 1,
+					"height": 1
+				}, {
+					"from": "/gc.pause.ns/",
+					"time": "",
+					"title": "Dispatch GC",
+					"where": "\"service\"= 'godispatch'",
+					"type": 1,
+					"height": 1
+				}],
+				"borderlabel": "System",
+				"border": true
+			}
+		}]
+	}, {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"widget": {
+				"height": 3,
+				"text": "Static text is all the rage!!!",
+				"border": true
+			}
+		}]
+	}, {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"widget": {
+				"height": 3,
+				"border": true
+			}
+		}]
+	}]
+}
