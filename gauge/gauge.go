@@ -1,13 +1,10 @@
 package guage
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"time"
-
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
+	"github.com/vrecan/FluxDash/query"
 )
 
 type GaugeInfo struct {
@@ -42,54 +39,20 @@ func (s *Gauge) Gauges() *ui.Gauge {
 }
 
 func (s *Gauge) Update(time string) {
-	s.SetData(time)
-	s.SetTitle(time)
+	s.SetDataAndTitle(time)
 }
 
-func (s *Gauge) SetData(time string) {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
-	s.G.Percent = meanTotal[0]
+func (s *Gauge) SetDataAndTitle(time string) {
+
 }
 
 func (s *Gauge) SetTitle(time string) {
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.I.From, s.I.Where, time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.I.From, s.I.Where, time, ""))
-	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, meanTotal[0], maxTotal[0])
-}
-func buildQuery(sel string, from string, where string, time string, groupBy string) string {
-	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
-		log.Fatal("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, groupBy))
-	}
-	if len(where) > 0 {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, time, groupBy)
+	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.I.From, s.I.Where, time, ""))
+	if len(meanTotal) > 0 {
+		s.G.Percent = meanTotal[0]
 	} else {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE time > %s %s", sel, from, time, groupBy)
+		s.G.Percent = 0
 	}
-}
-func getData(db *DB.Influx, q string) (data []int) {
-	r, err := db.Query(q)
-	if nil != err {
-		log.Fatal(err)
-	}
-	if len(r) == 0 || len(r[0].Series) == 0 {
-		log.Fatal(q)
-	}
-
-	for _, row := range r[0].Series[0].Values {
-		_, err := time.Parse(time.RFC3339, row[0].(string))
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(row) > 1 {
-			if nil != row[1] {
-				val, err := row[1].(json.Number).Float64()
-				if nil != err {
-					fmt.Println("ERR: ", err)
-				}
-				data = append(data, int(val))
-			}
-		}
-
-	}
-	return data
+	maxTotal := query.GetIntData(s.db, query.Build("max(value)", s.I.From, s.I.Where, time, ""))
+	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.I.Title, s.G.Percent, maxTotal[0])
 }

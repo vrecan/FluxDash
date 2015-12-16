@@ -1,15 +1,14 @@
 package sparkline
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"time"
-
+	log "github.com/cihub/seelog"
 	H "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
+	"github.com/vrecan/FluxDash/query"
 	"github.com/vrecan/FluxDash/timecop"
+	"time"
 )
 
 type SparkLines struct {
@@ -72,26 +71,20 @@ func (s *SparkLines) Update(time string, groupBy string) {
 	s.SL.Lines = uiSparks
 }
 
-func buildQuery(sel string, from string, where string, time string, groupBy string) string {
-	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
-		log.Fatal("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, groupBy))
-	}
-	if len(where) > 0 {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, time, groupBy)
-	} else {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE time > %s %s", sel, from, time, groupBy)
-	}
-}
-
 func (s *SparkLine) SetData(time string, groupBy string) {
 	// s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
-	s.SL.Data = getData(s.db, buildQuery("mean(value)", s.From, s.Where, time, groupBy))
+	s.SL.Data = query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
 }
 
 func (s *SparkLine) SetTitle(time string) {
 	// meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
-	meanTotal := getData(s.db, buildQuery("mean(value)", s.From, s.Where, time, ""))
-	maxTotal := getData(s.db, buildQuery("max(value)", s.From, s.Where, time, ""))
+	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
+	maxTotal := query.GetIntData(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
+	if len(meanTotal) < 1 || len(maxTotal) < 1 {
+		log.Error("No data for mean/max totals")
+		s.SL.Title = fmt.Sprintf("%s No data", s.Title)
+		return
+	}
 	switch s.DataType {
 	case Percent:
 		s.SL.Title = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Title, meanTotal[0], maxTotal[0])
@@ -102,35 +95,7 @@ func (s *SparkLine) SetTitle(time string) {
 	case Time:
 		s.SL.Title = fmt.Sprintf("%s mean:%v max:%v", s.Title, timecop.GetCommaString(float64(meanTotal[0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[0]), "nanoseconds"))
 	default:
-		log.Fatal("Data type is invalid: ", s.DataType)
+		log.Critical("Data type is invalid: ", s.DataType)
 	}
 
-}
-
-func getData(db *DB.Influx, q string) (data []int) {
-	r, err := db.Query(q)
-	if nil != err {
-		log.Fatal(err)
-	}
-	if len(r) == 0 || len(r[0].Series) == 0 {
-		log.Fatal(q)
-	}
-
-	for _, row := range r[0].Series[0].Values {
-		_, err := time.Parse(time.RFC3339, row[0].(string))
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(row) > 1 {
-			if nil != row[1] {
-				val, err := row[1].(json.Number).Float64()
-				if nil != err {
-					fmt.Println("ERR: ", err)
-				}
-				data = append(data, int(val))
-			}
-		}
-
-	}
-	return data
 }
