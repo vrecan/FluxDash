@@ -17,7 +17,7 @@ type Dashboard struct {
 	Rows []*Row         `json:"rows"`
 	Time *TS.TimeSelect `json:"-"` //TODO: Remove this?? It's in monitor shouldn't be in 2 places
 	db   *DB.Influx     `json:"-"`
-	Grid *ui.Grid       `json:"-` //json:"-" omits a field from being encoded
+	Grid *ui.Grid       `json:"-"` //json:"-" omits a field from being encoded
 }
 
 type P struct {
@@ -76,17 +76,16 @@ func ExampleDash(db *DB.Influx) *Dashboard {
 }
 
 func NewDashboard(db *DB.Influx) *Dashboard {
-	return &Dashboard{db: db, Time: &TS.TimeSelect{}}
+	return &Dashboard{db: db}
 
 }
 
 //Dashboard get dash from path.
-func NewDashboardFromFile(f string) *Dashboard {
+func NewDashboardFromFile(db *DB.Influx, f string) *Dashboard {
 	mem, e := ioutil.ReadFile(f)
 	if e != nil {
 		log.Critical("File error: ", e)
 	}
-	fmt.Printf("%s\n", string(mem))
 
 	// var jsontype jsonobject
 	dash := &Dashboard{}
@@ -94,6 +93,8 @@ func NewDashboardFromFile(f string) *Dashboard {
 	if nil != err {
 		panic(err)
 	}
+	dash.db = db
+	dash.Time = &TS.TimeSelect{}
 	return dash
 }
 
@@ -110,12 +111,6 @@ func (d *Dashboard) Create() {
 		for _, c := range r.Columns {
 
 			switch t := c.Widget.(type) {
-			// case SL.SparkLine:
-			// 	SL.NewSparkLinex(&t, d.db)
-			// 	col := ui.NewCol(c.Span, c.Offset, ui.NewSparklines(*t.SL))
-			// 	col.Height = c.Height
-			// 	columns = append(columns, col)
-			// 	c.Widget = t
 			case SL.SparkLines:
 				c.Widget = SL.NewSparkLines(d.db, &t)
 				col := ui.NewCol(c.Span, c.Offset, t.SL)

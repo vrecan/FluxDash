@@ -30,12 +30,9 @@ func main() {
 		panic(err)
 	}
 
-	dash := DASH.ExampleDash(db)
-	// sys := DASH.NewSystem(db)
-	// carp := DASH.NewCarpenter(db)
-	// disp := DASH.NewGoDispatch(db)
-	// maintenance := DASH.NewMaintenance(db)
-	// d := DASH.NewMonitor(sys, carp, disp, maintenance)
+	// DASH.CreateExampleDash()
+	// dash := DASH.ExampleDash(db)
+	dash := DASH.NewDashboardFromFile(db, "dashboards/example.json")
 	d := DASH.NewMonitor(dash)
 	d.Start()
 
