@@ -84,5 +84,5 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 
 }
 func (s *MultiSpark) GetColumns() []*ui.Row {
-	return []*ui.Row{ui.NewCol(12, 0, s.Sparks())}
+	return []*ui.Row{ui.NewCol(12, 0, s.SL)}
 }
