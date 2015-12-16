@@ -127,28 +127,6 @@ func (d *Dashboard) Create() {
 				col := ui.NewCol(c.Span, c.Offset, c.SparkLines.SL)
 				columns = append(columns, col)
 			}
-			// switch t := c.Widget.(type) {
-			// case SL.SparkLines:
-			// 	c.Widget = SL.NewSparkLines(d.db, &t)
-			// 	col := ui.NewCol(c.Span, c.Offset, t.SL)
-			// 	columns = append(columns, col)
-			// case P:
-			// 	par := ui.NewPar(t.Text)
-			// 	par.Border = t.Border
-			// 	par.Height = t.Height
-			// 	t.Par = par
-			// 	col := ui.NewCol(c.Span, c.Offset, par)
-			// 	columns = append(columns, col)
-			// 	c.Widget = t
-			// case TP.TimeP:
-			// 	c.Widget = TP.NewTimeP(&t)
-			// 	col := ui.NewCol(c.Span, c.Offset, t.Par)
-			// 	columns = append(columns, col)
-			// default:
-			// 	log.Error("Invalid type in dashboard: ", t)
-
-			// }
-
 		}
 		r.row.Cols = columns
 		rows = append(rows, r.row)
