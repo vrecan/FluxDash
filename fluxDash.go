@@ -31,6 +31,7 @@ func main() {
 	}
 
 	// DASH.CreateExampleDash()
+
 	// dash := DASH.ExampleDash(db)
 	dash := DASH.NewDashboardFromFile(db, "dashboards/example.json")
 	d := DASH.NewMonitor(dash)
