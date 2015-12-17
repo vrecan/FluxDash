@@ -21,7 +21,6 @@ type SparkLines struct {
 type SparkLine struct {
 	SL       *ui.Sparkline `json:"-"`
 	From     string        `json:"from"`
-	Time     string        `json:"time"`
 	db       *DB.Influx    `json:"-"`
 	Title    string        `json:"title"`
 	Where    string        `json:"where"`

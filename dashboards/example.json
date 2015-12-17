@@ -10,17 +10,15 @@
 			"sparklines": {
 				"lines": [{
 					"from": "/system.cpu/",
-					"time": "",
 					"title": "CPU",
 					"where": "",
-					"type": 1,
-					"height": 1
+					"type": 2,
+					"height": 5 
 				}, {
 					"from": "/gc.pause.ns/",
-					"time": "",
 					"title": "Dispatch GC",
 					"where": "\"service\"= 'godispatch'",
-					"type": 1,
+					"type": 4,
 					"height": 1
 				}],
 				"borderlabel": "System",
@@ -52,6 +50,22 @@
 			"timep": {
 				"height": 3,
 				"border": true
+			}
+		}]
+	},
+	 {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"barchart": {
+				"height": 6,
+				"from": "/es.indices/",
+				"where": "service='gomaintain'",
+				"borderLabel": "Elastic Indices"
 			}
 		}]
 	}]
