@@ -7,6 +7,7 @@ import (
 	ui "github.com/gizak/termui"
 	BC "github.com/vrecan/FluxDash/barchart"
 	DB "github.com/vrecan/FluxDash/influx"
+	MS "github.com/vrecan/FluxDash/multispark"
 	SL "github.com/vrecan/FluxDash/sparkline"
 	TP "github.com/vrecan/FluxDash/timep"
 	TS "github.com/vrecan/FluxDash/timeselect"
@@ -45,6 +46,7 @@ type Column struct {
 	TimeP      *TP.TimeP      `json:"timep,omitempty"`
 	SparkLines *SL.SparkLines `json:"sparklines,omitempty"`
 	BarChart   *BC.BarChart   `json:"barchart,omitempty"`
+	MultiSpark *MS.MultiSpark `json:"multispark,omitempty"`
 }
 
 func CreateExampleDash() {
@@ -133,7 +135,10 @@ func (d *Dashboard) Create() {
 				colBar := ui.NewCol(c.Span, c.Offset, c.BarChart.BarCharts())
 				colLabel := ui.NewCol(c.Span, c.Offset, c.BarChart.Labels())
 				columns = append(columns, colBar, colLabel)
-				log.Info("BAR:", c.BarChart)
+			} else if nil != c.MultiSpark {
+				c.MultiSpark = MS.NewMultiSpark(d.db, c.MultiSpark)
+				col := ui.NewCol(c.Span, c.Offset, c.MultiSpark.SL)
+				columns = append(columns, col)
 			}
 		}
 		r.row.Cols = columns
@@ -153,7 +158,9 @@ func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 			} else if nil != c.SparkLines {
 				c.SparkLines.Update(*time)
 			} else if nil != c.BarChart {
-				c.BarChart.Update(time)
+				c.BarChart.Update(*time)
+			} else if nil != c.MultiSpark {
+				c.MultiSpark.Update(*time)
 			}
 		}
 	}

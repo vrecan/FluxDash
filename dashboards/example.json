@@ -68,5 +68,25 @@
 				"borderLabel": "Elastic Indices"
 			}
 		}]
+	},
+		 {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"multispark": {
+				"height": 3,
+				"from": "/Dispatch.*/",
+				"where": "service='godispatch'",
+				"borderLabel": "Dispatch",
+				"border" : true,
+				"type": 1,
+				"linecolor": 20,
+				"titlecolor": 6
+			}
+		}]
 	}]
 }

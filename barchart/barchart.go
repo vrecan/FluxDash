@@ -36,7 +36,7 @@ func (s *BarChart) BarCharts() *ui.BarChart {
 func (s *BarChart) Labels() *ui.List {
 	return s.L
 }
-func (s *BarChart) Update(ts *TS.TimeSelect) {
+func (s *BarChart) Update(ts TS.TimeSelect) {
 	time, _, _ := ts.CurTime()
 	s.SetData(time)
 	s.SetTitle()
