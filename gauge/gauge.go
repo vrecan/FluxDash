@@ -38,8 +38,8 @@ type Gauge struct {
 	PercentColorHighlighted ui.Attribute `json:"percentcolorhighlighted"`
 	Label                   string       `json:"label"`
 	LabelAlign              ui.Align     `json:"labelalign"`
-	G                       *ui.Gauge
-	db                      *DB.Influx
+	G                       *ui.Gauge    `json:"-"`
+	db                      *DB.Influx   `json:"-"`
 }
 
 func NewGauge(db *DB.Influx, g *Gauge) *Gauge {
