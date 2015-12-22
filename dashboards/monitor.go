@@ -22,7 +22,7 @@ const (
 type Event struct {
 	Type    int
 	Time    *TS.TimeSelect
-	Dash    *Stats
+	Dash    Stats
 	Monitor *Monitor
 }
 
@@ -42,17 +42,17 @@ loop:
 			e := event.(Event)
 			if e.Type == KBD_T {
 				e.Time.NextTime()
-				(*e.Dash).UpdateAll(e.Time)
+				(e.Dash).UpdateAll(e.Time)
 			} else if e.Type == KBD_Y {
 				e.Time.PrevTime()
-				(*e.Dash).UpdateAll(e.Time)
+				(e.Dash).UpdateAll(e.Time)
 			} else if e.Type == KBD_SPACE {
-				(*e.Dash).UpdateAll(e.Time)
+				(e.Dash).UpdateAll(e.Time)
 			} else if e.Type == TIME {
 				counter++
 				_, _, refresh := e.Time.CurTime()
 				if counter%uint64(refresh) == 0 {
-					(*e.Dash).UpdateAll(e.Time)
+					(e.Dash).UpdateAll(e.Time)
 				}
 			}
 
@@ -71,9 +71,10 @@ loop:
 			} else if e.Type == KBD_N {
 				e.Monitor.NextDash()
 			} else if e.Type == RESIZE {
-				(*e.Dash).GetGrid().Width = ui.TermWidth()
-				(*e.Dash).GetGrid().Align()
-				ui.Render((*e.Dash).GetGrid())
+				(e.Dash).GetGrid().Width = ui.TermWidth()
+				(e.Dash).GetGrid().Align()
+				ui.Clear()
+				ui.Render((e.Dash).GetGrid())
 			}
 		}
 	}
@@ -146,21 +147,21 @@ func (m *Monitor) run() {
 	})
 	//adjust time range
 	ui.Handle("/sys/kbd/t", func(ui.Event) {
-		inputQ <- Event{Type: KBD_T, Time: m.time, Dash: &m.cDash}
+		inputQ <- Event{Type: KBD_T, Time: m.time, Dash: m.cDash}
 
 	})
 
 	ui.Handle("/sys/kbd/y", func(ui.Event) {
-		inputQ <- Event{Type: KBD_Y, Time: m.time, Dash: &m.cDash}
+		inputQ <- Event{Type: KBD_Y, Time: m.time, Dash: m.cDash}
 	})
 	ui.Handle("/sys/kbd/C-c", func(ui.Event) {
 		inputQ <- Event{Type: KBD_Q}
 	})
 	ui.Handle("/sys/kbd/<space>", func(e ui.Event) {
-		inputQ <- Event{Type: KBD_SPACE, Time: m.time, Dash: &m.cDash}
+		inputQ <- Event{Type: KBD_SPACE, Time: m.time, Dash: m.cDash}
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		inputQ <- Event{Type: TIME, Time: m.time, Dash: &m.cDash}
+		inputQ <- Event{Type: TIME, Time: m.time, Dash: m.cDash}
 	})
 
 	ui.Handle("/sys/kbd/n", func(e ui.Event) {
@@ -168,7 +169,7 @@ func (m *Monitor) run() {
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
-		inputQ <- Event{Type: RESIZE, Dash: &m.cDash}
+		inputQ <- Event{Type: RESIZE, Dash: m.cDash}
 	})
 
 	m.StartDash()

@@ -8,23 +8,24 @@ import (
 	DB "github.com/vrecan/FluxDash/influx"
 	"github.com/vrecan/FluxDash/query"
 	"github.com/vrecan/FluxDash/timecop"
-	"time"
+	TS "github.com/vrecan/FluxDash/timeselect"
 )
 
 type SparkLines struct {
-	SL      *ui.Sparklines
-	Refresh time.Duration
-	lines   []*SparkLine
+	SL          *ui.Sparklines `json:"-"`
+	Lines       []*SparkLine   `json:"lines"`
+	BorderLabel string         `json:"borderlabel"`
+	Border      bool           `json:"border"`
 }
 
 type SparkLine struct {
-	SL       *ui.Sparkline
-	From     string
-	Time     string
-	db       *DB.Influx
-	Title    string
-	Where    string
-	DataType int
+	SL       *ui.Sparkline `json:"-"`
+	From     string        `json:"from"`
+	db       *DB.Influx    `json:"-"`
+	Title    string        `json:"title"`
+	Where    string        `json:"where"`
+	DataType int           `json:"type"`
+	Height   int           `json:"height"`
 }
 
 const (
@@ -39,45 +40,40 @@ const (
 	Time    = 4
 )
 
-func NewSparkLines(s ...*SparkLine) *SparkLines {
-	spark := ui.NewSparklines()
-	sparkLines := SparkLines{SL: spark, lines: s}
+func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
+	s.SL = ui.NewSparklines()
 	h := defaultHeight
-	for _, sl := range s {
-		h += sl.SL.Height + 1
+
+	for _, line := range s.Lines {
+		line.db = db
+		h += line.Height + 1
+		spark := ui.NewSparkline()
+		spark.Height = line.Height
+		spark.Title = line.Title
+		line.SL = &spark
 	}
-	spark.Height = h
-	spark.BorderLabelFg = ui.ColorGreen | ui.AttrBold
-	spark.Border = true
-	return &sparkLines
+	s.SL.Height = h
+	s.SL.BorderLabelFg = ui.ColorGreen | ui.AttrBold
+	s.SL.Border = true
+	return s
 }
 
-func (s *SparkLines) Sparks() *ui.Sparklines {
-	return s.SL
-}
-
-func NewSparkLine(s ui.Sparkline, from string, db *DB.Influx, title string, where string) *SparkLine {
-	sl := &SparkLine{SL: &s, From: from, db: db, Title: title, DataType: Short, Where: where}
-	return sl
-}
-
-func (s *SparkLines) Update(time string, groupBy string) {
+func (s *SparkLines) Update(time TS.TimeSelect) {
 	var uiSparks []ui.Sparkline
-	for _, sl := range s.lines {
-		sl.SetData(time, groupBy)
-		sl.SetTitle(time)
+	t, groupByInterval, _ := time.CurTime()
+	for _, sl := range s.Lines {
+		sl.SetData(t, groupByInterval)
+		sl.SetTitle(t)
 		uiSparks = append(uiSparks, *sl.SL)
 	}
 	s.SL.Lines = uiSparks
 }
 
 func (s *SparkLine) SetData(time string, groupBy string) {
-	// s.SL.Data = getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s GROUP BY time(%s)", s.From, s.Time, defaultInterval))
 	s.SL.Data = query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
 }
 
 func (s *SparkLine) SetTitle(time string) {
-	// meanTotal := getData(s.db, fmt.Sprintf("Select mean(value) FROM %s WHERE time > %s", s.From, s.Time))
 	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	maxTotal := query.GetIntData(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
 	if len(meanTotal) < 1 || len(maxTotal) < 1 {

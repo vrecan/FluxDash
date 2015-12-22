@@ -1,0 +1,92 @@
+{
+	"rows": [{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"sparklines": {
+				"lines": [{
+					"from": "/system.cpu/",
+					"title": "CPU",
+					"where": "",
+					"type": 2,
+					"height": 5 
+				}, {
+					"from": "/gc.pause.ns/",
+					"title": "Dispatch GC",
+					"where": "\"service\"= 'godispatch'",
+					"type": 4,
+					"height": 1
+				}],
+				"borderlabel": "System",
+				"border": true
+			}
+		}]
+	}, {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"p": {
+				"height": 3,
+				"text": "Static text is all the rage!!!",
+				"border": true
+			}
+		}]
+	}, {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"timep": {
+				"height": 3,
+				"border": true
+			}
+		}]
+	},
+	 {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"barchart": {
+				"height": 6,
+				"from": "/es.indices/",
+				"where": "service='gomaintain'",
+				"borderLabel": "Elastic Indices"
+			}
+		}]
+	},
+		 {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"multispark": {
+				"height": 3,
+				"from": "/Dispatch.*/",
+				"where": "service='godispatch'",
+				"borderLabel": "Dispatch",
+				"border" : true,
+				"type": 1,
+				"linecolor": 20,
+				"titlecolor": 6
+			}
+		}]
+	}]
+}

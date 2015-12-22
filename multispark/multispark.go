@@ -9,6 +9,7 @@ import (
 	"github.com/vrecan/FluxDash/query"
 	SL "github.com/vrecan/FluxDash/sparkline"
 	"github.com/vrecan/FluxDash/timecop"
+	TS "github.com/vrecan/FluxDash/timeselect"
 )
 
 const (
@@ -22,44 +23,42 @@ const (
 	Time    = 4
 )
 
-type MultiSparkInfo struct {
-	From       string
-	Time       string
-	Title      string
-	Where      string
-	DataType   int
-	SpanSize   int
-	LineColor  ui.Attribute
-	TitleColor ui.Attribute
-}
-
 type MultiSpark struct {
+	From        string       `json:"from"`
+	BorderLabel string       `json:"borderlabel"`
+	Border      bool         `json:"border"`
+	Where       string       `json:"where"`
+	DataType    int          `json:"type"`
+	LineColor   ui.Attribute `json:"linecolor"`
+	TitleColor  ui.Attribute `json:"titlecolor"`
+
 	SL.SparkLines
-	db *DB.Influx
-	I  MultiSparkInfo
+	db *DB.Influx `json:"-"`
 }
 
-func NewMultiSpark(db *DB.Influx, i MultiSparkInfo) *MultiSpark {
-	ms := &MultiSpark{db: db, I: i}
-	ms.SetDataAndTitle(fmt.Sprintf("now() - %s", "15m"), fmt.Sprintf("GROUP BY time(%s)", "5s"))
+func NewMultiSpark(db *DB.Influx, ms *MultiSpark) *MultiSpark {
+	ms.db = db
+	ms.SL = ui.NewSparklines()
+	log.Info(ms)
 	return ms
 }
 
-func (s *MultiSpark) Update(time string, groupBy string) {
-	s.SetDataAndTitle(time, groupBy)
+func (s *MultiSpark) Update(time TS.TimeSelect) {
+	t, groupByInterval, _ := time.CurTime()
+	s.SetDataAndTitle(t, groupByInterval)
 }
 
 func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
-	data, labels := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.I.From, s.I.Where, time, groupBy))
-	meanTotal, _ := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.I.From, s.I.Where, time, ""))
-	maxTotal, _ := query.GetIntDataFromTags(s.db, query.Build("max(value)", s.I.From, s.I.Where, time, ""))
+	data, labels := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
+	meanTotal, _ := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
+	maxTotal, _ := query.GetIntDataFromTags(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
 	var uiSparks []ui.Sparkline
 	for i, _ := range data {
 		line := ui.NewSparkline()
 		line.Data = data[i]
-		line.LineColor = s.I.LineColor
-		line.TitleColor = s.I.TitleColor
-		switch s.I.DataType {
+		line.LineColor = s.LineColor
+		line.TitleColor = s.TitleColor
+		switch s.DataType {
 		case Percent:
 			line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
 		case Bytes:
@@ -69,7 +68,7 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 		case Time:
 			line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], timecop.GetCommaString(float64(meanTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(data[i][len(data[i])-1]), "nanoseconds"))
 		default:
-			log.Critical("Data type is invalid: ", s.I.DataType)
+			log.Critical("Data type is invalid: ", s.DataType)
 		}
 		uiSparks = append(uiSparks, line)
 	}
@@ -78,11 +77,9 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	} else {
 		s.SL.Lines = uiSparks
 	}
-	s.SL.BorderLabel = s.I.Title
+	s.SL.BorderLabel = s.BorderLabel
+	s.SL.Border = s.Border
 
 	s.SL.Height = 3 + len(data)*2
 
-}
-func (s *MultiSpark) GetColumns() []*ui.Row {
-	return []*ui.Row{ui.NewCol(12, 0, s.Sparks())}
 }
