@@ -4,6 +4,7 @@ import (
 	DB "github.com/influxdb/influxdb/client/v2"
 )
 
+//Influx is an influxdb wrapper to alow simpler querying.
 type Influx struct {
 	CLI  DB.Client
 	Conf DB.HTTPConfig

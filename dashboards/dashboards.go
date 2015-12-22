@@ -6,6 +6,7 @@ import (
 	log "github.com/cihub/seelog"
 	ui "github.com/gizak/termui"
 	BC "github.com/vrecan/FluxDash/barchart"
+	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
 	MS "github.com/vrecan/FluxDash/multispark"
 	SL "github.com/vrecan/FluxDash/sparkline"
@@ -46,6 +47,7 @@ type Column struct {
 	TimeP      *TP.TimeP      `json:"timep,omitempty"`
 	SparkLines *SL.SparkLines `json:"sparklines,omitempty"`
 	BarChart   *BC.BarChart   `json:"barchart,omitempty"`
+	Gauge      *G.Gauge       `json:"gauge,omitempty"`
 	MultiSpark *MS.MultiSpark `json:"multispark,omitempty"`
 }
 
@@ -139,6 +141,10 @@ func (d *Dashboard) Create() {
 				c.MultiSpark = MS.NewMultiSpark(d.db, c.MultiSpark)
 				col := ui.NewCol(c.Span, c.Offset, c.MultiSpark.SL)
 				columns = append(columns, col)
+			} else if nil != c.Gauge {
+				c.Gauge = G.NewGauge(d.db, c.Gauge)
+				col := ui.NewCol(c.Span, c.Offset, c.Gauge.G)
+				columns = append(columns, col)
 			}
 		}
 		r.row.Cols = columns
@@ -174,6 +180,9 @@ func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 			} else if nil != c.MultiSpark {
 				exp++
 				asyncUpdate(c.MultiSpark.Update, *time, finChan)
+			} else if nil != c.Gauge {
+				exp++
+				asyncUpdate(c.Gauge.Update, *time, finChan)
 			}
 		}
 	}

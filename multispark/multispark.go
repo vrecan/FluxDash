@@ -23,6 +23,7 @@ const (
 	Time    = 4
 )
 
+//MultiSpark is a collection of sparklines generated based on tags from an influxdb query.
 type MultiSpark struct {
 	From        string       `json:"from"`
 	BorderLabel string       `json:"borderlabel"`
@@ -37,6 +38,7 @@ type MultiSpark struct {
 	db *DB.Influx `json:"-"`
 }
 
+//NewMultiSpark builds a multispark from a partial multispark that has been generated from a json dashboard.
 func NewMultiSpark(db *DB.Influx, ms *MultiSpark) *MultiSpark {
 	ms.db = db
 	ms.SL = ui.NewSparklines()
@@ -48,11 +50,13 @@ func NewMultiSpark(db *DB.Influx, ms *MultiSpark) *MultiSpark {
 
 var colors = []ui.Attribute{ui.ColorWhite, ui.ColorGreen, ui.ColorMagenta, ui.ColorRed, ui.ColorYellow, ui.ColorBlack, ui.ColorBlue, ui.ColorCyan}
 
+//Update a multispark will requery influxdb to update the sparklines.
 func (s *MultiSpark) Update(time TS.TimeSelect) {
 	t, groupByInterval, _ := time.CurTime()
 	s.SetDataAndTitle(t, groupByInterval)
 }
 
+//SetDatAndTitle will update all the data for all sparklines in the multispark.
 func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	data, labels := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
 	meanTotal, _ := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
