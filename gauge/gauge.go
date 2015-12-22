@@ -9,9 +9,7 @@ import (
 	TS "github.com/vrecan/FluxDash/timeselect"
 )
 
-type GaugeInfo struct {
-}
-
+//Gauge is a simple percentage gauge of a statistic.
 type Gauge struct {
 	From                    string       `json:"from"`
 	Where                   string       `json:"where"`
@@ -42,6 +40,7 @@ type Gauge struct {
 	db                      *DB.Influx   `json:"-"`
 }
 
+//NewGauge will create a gauge from a partial gauge generated from a json dashboard.
 func NewGauge(db *DB.Influx, g *Gauge) *Gauge {
 	g.db = db
 	g.G = ui.NewGauge()
@@ -49,21 +48,20 @@ func NewGauge(db *DB.Influx, g *Gauge) *Gauge {
 	return g
 }
 
-func (s *Gauge) Gauges() *ui.Gauge {
-	return s.G
-}
-
+//Update the gauge data from influxdb queries.
 func (s *Gauge) Update(time TS.TimeSelect) {
 	t, _, _ := time.CurTime()
 	s.SetData(t)
 	s.SetTitle(t)
 }
 
+//SetData will set the data for the bar.
 func (s *Gauge) SetData(time string) {
 	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	s.G.Percent = meanTotal[0]
 }
 
+//SetTitle will set the label of the gauge.
 func (s *Gauge) SetTitle(time string) {
 	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	if len(meanTotal) > 0 {
