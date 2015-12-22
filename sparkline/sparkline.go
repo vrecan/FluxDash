@@ -4,14 +4,15 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	H "github.com/dustin/go-humanize"
-	ST "github.com/fatih/structs"
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
+	"github.com/vrecan/FluxDash/merge"
 	"github.com/vrecan/FluxDash/query"
 	"github.com/vrecan/FluxDash/timecop"
 	TS "github.com/vrecan/FluxDash/timeselect"
 )
 
+//SparkLines is a collection of sparklines that can have extra ui attributes.
 type SparkLines struct {
 	SL    *ui.Sparklines `json:"-"`
 	Lines []*SparkLine   `json:"lines"`
@@ -36,6 +37,7 @@ type SparkLines struct {
 	PaddingRight  int          `json:"paddingright"`
 }
 
+//SparkLine is a single stat drawn using the termui sparkline.
 type SparkLine struct {
 	SL         *ui.Sparkline `json:"-"`
 	From       string        `json:"from"`
@@ -60,20 +62,23 @@ const (
 	Time    = 4
 )
 
+//NewSparkLines builds a new sparkline from a partial build sparkline
+//which should come from parsing a json dashboard.
 func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
 	s.SL = ui.NewSparklines()
 	h := defaultHeight
-	sStruct := ST.New(s)
-	slStruct := ST.New(s.SL)
-	for _, field := range sStruct.Fields() {
-		if field.Name() == "SL" || field.Name() == "Lines" {
-			continue
-		}
-		err := slStruct.Field(field.Name()).Set(field.Value())
-		if nil != err {
-			panic(err)
-		}
-	}
+	merge.Merge(s, s.SL, "SL", "Lines")
+	// sStruct := ST.New(s)
+	// slStruct := ST.New(s.SL)
+	// for _, field := range sStruct.Fields() {
+	// 	if field.Name() == "SL" || field.Name() == "Lines" {
+	// 		continue
+	// 	}
+	// 	err := slStruct.Field(field.Name()).Set(field.Value())
+	// 	if nil != err {
+	// 		panic(err)
+	// 	}
+	// }
 
 	for _, line := range s.Lines {
 		line.db = db
@@ -90,6 +95,7 @@ func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
 	return s
 }
 
+//Update will update all the data associated to the sparklines
 func (s *SparkLines) Update(time TS.TimeSelect) {
 	var uiSparks []ui.Sparkline
 	t, groupByInterval, _ := time.CurTime()
@@ -101,10 +107,12 @@ func (s *SparkLines) Update(time TS.TimeSelect) {
 	s.SL.Lines = uiSparks
 }
 
+//SetData sets the data in the sparkline that will be drawn.
 func (s *SparkLine) SetData(time string, groupBy string) {
 	s.SL.Data = query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
 }
 
+//SetTitle sets the title for the sparkline adding extar info like mean and max totals.
 func (s *SparkLine) SetTitle(time string) {
 	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	maxTotal := query.GetIntData(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
