@@ -150,22 +150,42 @@ func (d *Dashboard) Create() {
 	d.Grid.Align()
 }
 
+func asyncUpdate(f func(TS.TimeSelect), t TS.TimeSelect, done chan bool) {
+	go func() {
+		f(t)
+		done <- true
+	}()
+}
+
 func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
+	finChan := make(chan bool, 0)
+	exp := 0
 	for _, r := range d.Rows {
 		for _, c := range r.Columns {
 			if nil != c.TimeP {
-				c.TimeP.Update(*time)
+				exp++
+				asyncUpdate(c.TimeP.Update, *time, finChan)
 			} else if nil != c.SparkLines {
-				c.SparkLines.Update(*time)
+				exp++
+				asyncUpdate(c.SparkLines.Update, *time, finChan)
 			} else if nil != c.BarChart {
-				c.BarChart.Update(*time)
+				exp++
+				asyncUpdate(c.BarChart.Update, *time, finChan)
 			} else if nil != c.MultiSpark {
-				c.MultiSpark.Update(*time)
+				exp++
+				asyncUpdate(c.MultiSpark.Update, *time, finChan)
 			}
 		}
 	}
-	d.Grid.Align()
-	ui.Render(d.Grid)
+	//select with timer might be more robust here
+	for _ = range finChan {
+		exp--
+		d.Grid.Align()
+		ui.Render(d.Grid)
+		if exp == 0 {
+			break
+		}
+	}
 }
 
 func (d *Dashboard) GetGrid() *ui.Grid {

@@ -64,12 +64,11 @@ func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
 	s.SL = ui.NewSparklines()
 	h := defaultHeight
 	sStruct := ST.New(s)
-
+	slStruct := ST.New(s.SL)
 	for _, field := range sStruct.Fields() {
 		if field.Name() == "SL" || field.Name() == "Lines" {
 			continue
 		}
-		slStruct := ST.New(s.SL)
 		err := slStruct.Field(field.Name()).Set(field.Value())
 		if nil != err {
 			panic(err)
