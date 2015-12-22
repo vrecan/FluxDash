@@ -30,12 +30,13 @@
 				"from": "/es.*.FS.Used.Percent/",
 				"where": "service='gomaintain'",
 				"border": true,
+				"BorderLabel": "ES",
 				"bordertop": true,
 				"borderbottom": true,
 				"borderright": true,
 				"borderleft": true,
 				"BarColor": 5,
-				"label": "ES Disk Used"
+				"label": "Disk Used"
 
 
 			}
