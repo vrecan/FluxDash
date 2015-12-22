@@ -89,6 +89,7 @@
 				"where": "service='godispatch'",
 				"borderLabel": "Dispatch",
 				"border" : true,
+				"bg" : 0,
 				"type": 1,
 				"autocolor": true,
 				"titlecolor": 6

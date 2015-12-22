@@ -66,6 +66,10 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 			if autoColorc > len(colors)-1 {
 				autoColorc = 0
 			}
+			//skip bg color so that we don't paint black on black...
+			if colors[autoColorc] == s.Bg {
+				autoColorc++
+			}
 			line.LineColor = colors[autoColorc]
 			line.TitleColor = colors[autoColorc]
 			autoColorc++
