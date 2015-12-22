@@ -5,37 +5,13 @@
 		"offset": 0,
 		"columns": [{
 			"height": 1,
-			"span": 12,
+			"span": 6,
 			"offset": 0,
-			"sparklines": {
-				"borderlabel" : "Random System Stats",
-				"borderlabelfg" : 20,
-				"border": true,
-				"borderfg" : 20,
-				"BorderTop" : true,
-				"BorderBottom" : true,
-				"borderbg": 8,
-				"lines": [{
-					"from": "/system.cpu/",
-					"title": "CPU",
-					"where": "",
-					"type": 2,
-					"height": 5,
-					"linecolor" : 20
-				}, {
-					"from": "/gc.pause.ns/",
-					"title": "Dispatch GC",
-					"where": "\"service\"= 'godispatch'",
-					"type": 4,
-					"height": 1
-				}]
+			"timep": {
+				"height": 3,
+				"border": true
 			}
-		}]
-	}, {
-		"height": 1,
-		"span": 12,
-		"offset": 0,
-		"columns": [{
+		},{
 			"height": 1,
 			"span": 6,
 			"offset": 0,
@@ -45,20 +21,43 @@
 				"border": true
 			}
 		}]
-	}, {
+	},
+	 {
 		"height": 1,
 		"span": 12,
 		"offset": 0,
 		"columns": [{
 			"height": 1,
-			"span": 6,
+			"span": 12,
 			"offset": 0,
-			"timep": {
-				"height": 3,
-				"border": true
+			"sparklines": {
+				"borderlabel" : "Random System Stats",
+				"borderlabelfg" : 4,
+				"border": true,
+				"borderfg" : 4,
+				"Bordertop" : true,
+				"Borderbottom" : true,
+				"Borderleft" : true,
+				"Borderright" : true,
+				"borderbg": 2,
+				"lines": [{
+					"from": "/system.cpu/",
+					"title": "CPU",
+					"where": "",
+					"type": 2,
+					"height": 5,
+					"linecolor" : 5,
+					"titlecolor": 0
+				}, {
+					"from": "/gc.pause.ns/",
+					"title": "Dispatch GC",
+					"where": "\"service\"= 'godispatch'",
+					"type": 4,
+					"height": 1
+				}]
 			}
 		}]
-	},
+	}, 
 	 {
 		"height": 1,
 		"span": 12,
@@ -89,6 +88,7 @@
 				"where": "service='godispatch'",
 				"borderLabel": "Dispatch",
 				"border" : true,
+				"bg" : 0,
 				"type": 1,
 				"autocolor": true,
 				"titlecolor": 6
