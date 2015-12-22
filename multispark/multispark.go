@@ -29,9 +29,10 @@ type MultiSpark struct {
 	Border      bool         `json:"border"`
 	Where       string       `json:"where"`
 	DataType    int          `json:"type"`
+	Bg          ui.Attribute `json:"bg"`
 	LineColor   ui.Attribute `json:"linecolor"`
 	TitleColor  ui.Attribute `json:"titlecolor"`
-
+	AutoColor   bool         `json:"autocolor"`
 	SL.SparkLines
 	db *DB.Influx `json:"-"`
 }
@@ -39,9 +40,13 @@ type MultiSpark struct {
 func NewMultiSpark(db *DB.Influx, ms *MultiSpark) *MultiSpark {
 	ms.db = db
 	ms.SL = ui.NewSparklines()
-	log.Info(ms)
+	ms.SL.Bg = ms.Bg
+	ms.SL.BorderLabel = ms.BorderLabel
+	ms.SL.Border = ms.Border
 	return ms
 }
+
+var colors = []ui.Attribute{ui.ColorWhite, ui.ColorGreen, ui.ColorMagenta, ui.ColorRed, ui.ColorYellow, ui.ColorBlack, ui.ColorBlue, ui.ColorCyan}
 
 func (s *MultiSpark) Update(time TS.TimeSelect) {
 	t, groupByInterval, _ := time.CurTime()
@@ -52,12 +57,22 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	data, labels := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, groupBy))
 	meanTotal, _ := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	maxTotal, _ := query.GetIntDataFromTags(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
+	autoColorc := 0
 	var uiSparks []ui.Sparkline
 	for i, _ := range data {
 		line := ui.NewSparkline()
 		line.Data = data[i]
-		line.LineColor = s.LineColor
-		line.TitleColor = s.TitleColor
+		if s.AutoColor {
+			if autoColorc > len(colors)-1 {
+				autoColorc = 0
+			}
+			line.LineColor = colors[autoColorc]
+			line.TitleColor = colors[autoColorc]
+			autoColorc++
+		} else {
+			line.LineColor = s.LineColor
+			line.TitleColor = s.TitleColor
+		}
 		switch s.DataType {
 		case Percent:
 			line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
@@ -72,14 +87,7 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 		}
 		uiSparks = append(uiSparks, line)
 	}
-	if s.SL == nil {
-		s.SL = ui.NewSparklines(uiSparks...)
-	} else {
-		s.SL.Lines = uiSparks
-	}
-	s.SL.BorderLabel = s.BorderLabel
-	s.SL.Border = s.Border
-
+	s.SL.Lines = uiSparks
 	s.SL.Height = 3 + len(data)*2
 
 }
