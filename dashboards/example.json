@@ -8,21 +8,27 @@
 			"span": 12,
 			"offset": 0,
 			"sparklines": {
+				"borderlabel" : "Random System Stats",
+				"borderlabelfg" : 20,
+				"border": true,
+				"borderfg" : 20,
+				"BorderTop" : true,
+				"BorderBottom" : true,
+				"borderbg": 8,
 				"lines": [{
 					"from": "/system.cpu/",
 					"title": "CPU",
 					"where": "",
 					"type": 2,
-					"height": 5 
+					"height": 5,
+					"linecolor" : 20
 				}, {
 					"from": "/gc.pause.ns/",
 					"title": "Dispatch GC",
 					"where": "\"service\"= 'godispatch'",
 					"type": 4,
 					"height": 1
-				}],
-				"borderlabel": "System",
-				"border": true
+				}]
 			}
 		}]
 	}, {
@@ -84,7 +90,7 @@
 				"borderLabel": "Dispatch",
 				"border" : true,
 				"type": 1,
-				"linecolor": 20,
+				"autocolor": true,
 				"titlecolor": 6
 			}
 		}]

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	H "github.com/dustin/go-humanize"
+	ST "github.com/fatih/structs"
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
 	"github.com/vrecan/FluxDash/query"
@@ -12,20 +13,39 @@ import (
 )
 
 type SparkLines struct {
-	SL          *ui.Sparklines `json:"-"`
-	Lines       []*SparkLine   `json:"lines"`
-	BorderLabel string         `json:"borderlabel"`
-	Border      bool           `json:"border"`
+	SL    *ui.Sparklines `json:"-"`
+	Lines []*SparkLine   `json:"lines"`
+
+	BorderLabel   string       `json:"borderlabel"`
+	Border        bool         `json:"border"`
+	BorderFg      ui.Attribute `json:"borderfg"`
+	BorderBg      ui.Attribute `json:"borderbg"`
+	BorderLeft    bool         `json:borderleft"`
+	BorderRight   bool         `json:"borderright"`
+	BorderTop     bool         `json:"bordertop"`
+	BorderBottom  bool         `json:"borderbottom"`
+	BorderLabelFg ui.Attribute `json:"borderlabelfg"`
+	BorderLabelBg ui.Attribute `json:"borderlabelbg"`
+	Display       bool         `json:"display"`
+	Bg            ui.Attribute `json:"bg"`
+	Width         int          `json:"width"`
+	Height        int          `json:"height"`
+	PaddingTop    int          `json:"paddingtop"`
+	PaddingBottom int          `json:"paddingbottom"`
+	PaddingLeft   int          `json:"paddingleft"`
+	PaddingRight  int          `json:"paddingright"`
 }
 
 type SparkLine struct {
-	SL       *ui.Sparkline `json:"-"`
-	From     string        `json:"from"`
-	db       *DB.Influx    `json:"-"`
-	Title    string        `json:"title"`
-	Where    string        `json:"where"`
-	DataType int           `json:"type"`
-	Height   int           `json:"height"`
+	SL         *ui.Sparkline `json:"-"`
+	From       string        `json:"from"`
+	db         *DB.Influx    `json:"-"`
+	DataType   int           `json:"type"`
+	Title      string        `json:"title"`
+	TitleColor ui.Attribute  `json:"titlecolor"`
+	Where      string        `json:"where"`
+	Height     int           `json:"height"`
+	LineColor  ui.Attribute  `json:"linecolor"`
 }
 
 const (
@@ -43,18 +63,31 @@ const (
 func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
 	s.SL = ui.NewSparklines()
 	h := defaultHeight
+	sStruct := ST.New(s)
+
+	for _, field := range sStruct.Fields() {
+		if field.Name() == "SL" || field.Name() == "Lines" {
+			continue
+		}
+		slStruct := ST.New(s.SL)
+		err := slStruct.Field(field.Name()).Set(field.Value())
+		if nil != err {
+			panic(err)
+		}
+	}
 
 	for _, line := range s.Lines {
 		line.db = db
 		h += line.Height + 1
 		spark := ui.NewSparkline()
+		spark.LineColor = line.LineColor
+		spark.TitleColor = line.TitleColor
 		spark.Height = line.Height
 		spark.Title = line.Title
 		line.SL = &spark
 	}
+
 	s.SL.Height = h
-	s.SL.BorderLabelFg = ui.ColorGreen | ui.AttrBold
-	s.SL.Border = true
 	return s
 }
 
