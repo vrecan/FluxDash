@@ -16,7 +16,6 @@ type Gauge struct {
 	From                    string       `json:"from"`
 	Where                   string       `json:"where"`
 	BorderLabel             string       `json:"borderlabel"`
-	Title                   string       `json:"title"`
 	Border                  bool         `json:"border"`
 	BorderFg                ui.Attribute `json:"borderfg"`
 	BorderBg                ui.Attribute `json:"borderbg"`
@@ -46,7 +45,7 @@ type Gauge struct {
 func NewGauge(db *DB.Influx, g *Gauge) *Gauge {
 	g.db = db
 	g.G = ui.NewGauge()
-	merge.Merge(g, g.G, "G", "db", "Title")
+	merge.Merge(g, g.G, "G", "db")
 	return g
 }
 
