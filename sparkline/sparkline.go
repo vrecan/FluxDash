@@ -41,7 +41,7 @@ type SparkLines struct {
 type SparkLine struct {
 	SL         *ui.Sparkline `json:"-"`
 	From       string        `json:"from"`
-	db         *DB.Influx    `json:"-"`
+	db         DB.DBI        `json:"-"`
 	DataType   int           `json:"type"`
 	Title      string        `json:"title"`
 	TitleColor ui.Attribute  `json:"titlecolor"`
@@ -64,21 +64,10 @@ const (
 
 //NewSparkLines builds a new sparkline from a partial build sparkline
 //which should come from parsing a json dashboard.
-func NewSparkLines(db *DB.Influx, s *SparkLines) *SparkLines {
+func NewSparkLines(db DB.DBI, s *SparkLines) *SparkLines {
 	s.SL = ui.NewSparklines()
 	h := defaultHeight
 	merge.Merge(s, s.SL, "SL", "Lines")
-	// sStruct := ST.New(s)
-	// slStruct := ST.New(s.SL)
-	// for _, field := range sStruct.Fields() {
-	// 	if field.Name() == "SL" || field.Name() == "Lines" {
-	// 		continue
-	// 	}
-	// 	err := slStruct.Field(field.Name()).Set(field.Value())
-	// 	if nil != err {
-	// 		panic(err)
-	// 	}
-	// }
 
 	for _, line := range s.Lines {
 		line.db = db

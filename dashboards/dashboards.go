@@ -19,7 +19,7 @@ import (
 type Dashboard struct {
 	Rows []*Row         `json:"rows"`
 	Time *TS.TimeSelect `json:"-"` //TODO: Remove this?? It's in monitor shouldn't be in 2 places
-	db   *DB.Influx     `json:"-"`
+	db   DB.DBI         `json:"-"`
 	Grid *ui.Grid       `json:"-"` //json:"-" omits a field from being encoded
 }
 
@@ -60,7 +60,7 @@ func CreateExampleDash() {
 }
 
 //ExampleDash returns an example dashboard with all basic stuff filled out.
-func ExampleDash(db *DB.Influx) *Dashboard {
+func ExampleDash(db DB.DBI) *Dashboard {
 	dash := NewDashboard(db)
 	sl1 := &SL.SparkLine{Title: "CPU", From: "/system.cpu/", Where: "", Height: 1, DataType: 1}
 	sl2 := &SL.SparkLine{Title: "Dispatch GC", Height: 1, From: "/gc.pause.ns/", Where: `"service"= 'godispatch'`, DataType: 1}
@@ -83,13 +83,13 @@ func ExampleDash(db *DB.Influx) *Dashboard {
 	return dash
 }
 
-func NewDashboard(db *DB.Influx) *Dashboard {
+func NewDashboard(db DB.DBI) *Dashboard {
 	return &Dashboard{db: db}
 
 }
 
 //Dashboard get dash from path.
-func NewDashboardFromFile(db *DB.Influx, f string) *Dashboard {
+func NewDashboardFromFile(db DB.DBI, f string) *Dashboard {
 	mem, e := ioutil.ReadFile(f)
 	if e != nil {
 		log.Critical("File error: ", e)

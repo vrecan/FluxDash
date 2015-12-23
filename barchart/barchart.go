@@ -16,10 +16,10 @@ type BarChart struct {
 	GroupBy     string       `json:"groupby,omitempty"`
 	C           *ui.BarChart `json:"-"`
 	L           *ui.List     `json:"-"`
-	db          *DB.Influx   `json:"-"`
+	db          DB.DBI       `json:"-"`
 }
 
-func NewBarChart(db *DB.Influx, bc *BarChart) *BarChart {
+func NewBarChart(db DB.DBI, bc *BarChart) *BarChart {
 	bc.C = ui.NewBarChart()
 	bc.L = ui.NewList()
 	bc.db = db

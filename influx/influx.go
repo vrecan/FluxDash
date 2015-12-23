@@ -4,6 +4,11 @@ import (
 	DB "github.com/influxdb/influxdb/client/v2"
 )
 
+type DBI interface {
+	Query(string) ([]DB.Result, error)
+	Close() error
+}
+
 //Influx is an influxdb wrapper to alow simpler querying.
 type Influx struct {
 	CLI  DB.Client
@@ -34,7 +39,7 @@ func (i *Influx) Query(cmd string) (res []DB.Result, err error) {
 	return res, nil
 }
 
-func (i *Influx) close() error {
+func (i *Influx) Close() error {
 	if nil != i {
 		return i.CLI.Close()
 	}
