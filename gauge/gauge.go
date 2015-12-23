@@ -37,11 +37,11 @@ type Gauge struct {
 	Label                   string       `json:"label"`
 	LabelAlign              ui.Align     `json:"labelalign"`
 	G                       *ui.Gauge    `json:"-"`
-	db                      *DB.Influx   `json:"-"`
+	db                      DB.DBI       `json:"-"`
 }
 
 //NewGauge will create a gauge from a partial gauge generated from a json dashboard.
-func NewGauge(db *DB.Influx, g *Gauge) *Gauge {
+func NewGauge(db DB.DBI, g *Gauge) *Gauge {
 	g.db = db
 	g.G = ui.NewGauge()
 	merge.Merge(g, g.G, "G", "db")

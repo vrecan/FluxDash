@@ -35,11 +35,11 @@ type MultiSpark struct {
 	TitleColor  ui.Attribute `json:"titlecolor"`
 	AutoColor   bool         `json:"autocolor"`
 	SL.SparkLines
-	db *DB.Influx `json:"-"`
+	db DB.DBI `json:"-"`
 }
 
 //NewMultiSpark builds a multispark from a partial multispark that has been generated from a json dashboard.
-func NewMultiSpark(db *DB.Influx, ms *MultiSpark) *MultiSpark {
+func NewMultiSpark(db DB.DBI, ms *MultiSpark) *MultiSpark {
 	ms.db = db
 	ms.SL = ui.NewSparklines()
 	ms.SL.Bg = ms.Bg

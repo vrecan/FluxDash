@@ -20,7 +20,7 @@ func Build(sel string, from string, where string, time string, groupBy string) s
 	}
 }
 
-func GetIntData(db *DB.Influx, q string) (data []int) {
+func GetIntData(db DB.DBI, q string) (data []int) {
 	r, err := db.Query(q)
 	if nil != err {
 		log.Error("No data from query:", q)
@@ -52,7 +52,7 @@ func GetIntData(db *DB.Influx, q string) (data []int) {
 	return data
 }
 
-func GetIntDataFromTags(db *DB.Influx, q string) (data [][]int, labels []string) {
+func GetIntDataFromTags(db DB.DBI, q string) (data [][]int, labels []string) {
 	r, err := db.Query(q)
 	if nil != err {
 		log.Error("No data from query:", q)
@@ -87,7 +87,7 @@ func GetIntDataFromTags(db *DB.Influx, q string) (data [][]int, labels []string)
 	return data, labels
 }
 
-func GetDataForBar(db *DB.Influx, q string) (data []int, labels [][]string) {
+func GetDataForBar(db DB.DBI, q string) (data []int, labels [][]string) {
 	r, err := db.Query(q)
 	if nil != err {
 		log.Error("No data from query:", q)
