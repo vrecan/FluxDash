@@ -6,6 +6,7 @@ import (
 	H "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
 	DB "github.com/vrecan/FluxDash/influx"
+	"github.com/vrecan/FluxDash/merge"
 	"github.com/vrecan/FluxDash/query"
 	SL "github.com/vrecan/FluxDash/sparkline"
 	"github.com/vrecan/FluxDash/timecop"
@@ -25,26 +26,45 @@ const (
 
 //MultiSpark is a collection of sparklines generated based on tags from an influxdb query.
 type MultiSpark struct {
-	From        string       `json:"from"`
-	BorderLabel string       `json:"borderlabel"`
-	Border      bool         `json:"border"`
-	Where       string       `json:"where"`
-	DataType    int          `json:"type"`
-	Bg          ui.Attribute `json:"bg"`
-	LineColor   ui.Attribute `json:"linecolor"`
-	TitleColor  ui.Attribute `json:"titlecolor"`
-	AutoColor   bool         `json:"autocolor"`
+	From  string `json:"from"`
+	Where string `json:"where"`
+
 	SL.SparkLines
 	db DB.DBI `json:"-"`
+
+	BorderLabel   string       `json:"borderlabel"`
+	Border        bool         `json:"border"`
+	BorderFg      ui.Attribute `json:"borderfg"`
+	BorderBg      ui.Attribute `json:"borderbg"`
+	BorderLeft    bool         `json:borderleft"`
+	BorderRight   bool         `json:"borderright"`
+	BorderTop     bool         `json:"bordertop"`
+	BorderBottom  bool         `json:"borderbottom"`
+	BorderLabelFg ui.Attribute `json:"borderlabelfg"`
+	BorderLabelBg ui.Attribute `json:"borderlabelbg"`
+	Display       bool         `json:"display"`
+	Bg            ui.Attribute `json:"bg"`
+	Width         int          `json:"width"`
+	Height        int          `json:"height"`
+	PaddingTop    int          `json:"paddingtop"`
+	PaddingBottom int          `json:"paddingbottom"`
+	PaddingLeft   int          `json:"paddingleft"`
+	PaddingRight  int          `json:"paddingright"`
+	AutoColor     bool         `json:"autocolor"`
+	DataType      int          `json:"type"`
+	LineColor     ui.Attribute `json:"linecolor"`
+	TitleColor    ui.Attribute `json:"titlecolor"`
 }
 
 //NewMultiSpark builds a multispark from a partial multispark that has been generated from a json dashboard.
 func NewMultiSpark(db DB.DBI, ms *MultiSpark) *MultiSpark {
 	ms.db = db
 	ms.SL = ui.NewSparklines()
-	ms.SL.Bg = ms.Bg
-	ms.SL.BorderLabel = ms.BorderLabel
-	ms.SL.Border = ms.Border
+	merge.Merge(ms, ms.SL, "db", "from", "where")
+
+	// ms.SL.Bg = ms.Bg
+	// ms.SL.BorderLabel = ms.BorderLabel
+	// ms.SL.Border = ms.Border
 	return ms
 }
 
