@@ -6,9 +6,9 @@ import (
 
 	ui "github.com/gizak/termui"
 	TS "github.com/vrecan/FluxDash/timeselect"
-	// "log"
 )
 
+//Keybaord consts
 const (
 	KBD_Q     = 1
 	KBD_T     = 2
@@ -19,6 +19,7 @@ const (
 	RESIZE    = 7
 )
 
+//Event are the events sent to the commandQ.
 type Event struct {
 	Type    int
 	Time    *TS.TimeSelect
@@ -26,6 +27,7 @@ type Event struct {
 	Monitor *Monitor
 }
 
+//CommandQ is our main loop for processing input
 func CommandQ(inputQ <-chan interface{}, done chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	counter := uint64(0)
@@ -80,6 +82,7 @@ loop:
 	}
 }
 
+//DebounceChan is a simple debouncer using channels that will grab the last message after the timeout.
 func DebounceChan(input chan interface{}, wait time.Duration, res chan interface{}) {
 	var dRes interface{}
 	timer := time.NewTimer(wait)
@@ -105,6 +108,7 @@ func DebounceChan(input chan interface{}, wait time.Duration, res chan interface
 	timer.Stop()
 }
 
+//Monitor is the main struct to monitor the dashboards.
 type Monitor struct {
 	time    *TS.TimeSelect
 	Dashes  []Stats
@@ -112,20 +116,24 @@ type Monitor struct {
 	cDash   Stats
 }
 
+//NewMonitor creates a new monitor struct that can display dashboards.
 func NewMonitor(s ...Stats) *Monitor {
 	return &Monitor{time: &TS.TimeSelect{}, Dashes: s, dashPos: 0}
 }
 
+//Start the monitor.
 func (m *Monitor) Start() {
 	m.run()
 }
 
+//Stats is an interface for all the widgets
 type Stats interface {
 	UpdateAll(*TS.TimeSelect)
 	Create()
 	GetGrid() *ui.Grid
 }
 
+//run is the main loop for a monitor.
 func (m *Monitor) run() {
 
 	err := ui.Init()
@@ -178,6 +186,7 @@ func (m *Monitor) run() {
 	wg.Wait()
 }
 
+//StartDash enables a dashboard, if it' hasn't been created it creates a new one.
 func (m *Monitor) StartDash() {
 	m.cDash = m.Dashes[m.dashPos]
 	if m.cDash.GetGrid() == nil {
@@ -188,6 +197,7 @@ func (m *Monitor) StartDash() {
 	ui.Render(m.cDash.GetGrid())
 }
 
+//NextDash moves to the next dashboard.
 func (m *Monitor) NextDash() {
 	m.dashPos++
 	if m.dashPos > len(m.Dashes)-1 {
@@ -196,6 +206,8 @@ func (m *Monitor) NextDash() {
 	m.cDash = m.Dashes[m.dashPos]
 	m.StartDash()
 }
+
+//Close stop's the main loop and exits the monitor.
 func (m *Monitor) Close() error {
 	ui.StopLoop()
 	return nil
