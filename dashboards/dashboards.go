@@ -58,23 +58,24 @@ func NewDashboard(db DB.DBI) *Dashboard {
 }
 
 //Dashboard get dash from path.
-func NewDashboardFromFile(db DB.DBI, f string) *Dashboard {
-	mem, e := ioutil.ReadFile(f)
-	if e != nil {
-		log.Critical("File error: ", e)
+func NewDashboardFromFile(db DB.DBI, f string) (dash *Dashboard, err error) {
+	mem, err := ioutil.ReadFile(f)
+	if nil != err {
+		return nil, err
 	}
+	dash = &Dashboard{}
 
 	// var jsontype jsonobject
-	dash := &Dashboard{}
-	err := json.Unmarshal(mem, dash)
+	err = json.Unmarshal(mem, dash)
 	if nil != err {
-		panic(err)
+		return nil, err
 	}
 	dash.db = db
 	dash.Time = &TS.TimeSelect{}
-	return dash
+	return dash, err
 }
 
+//Create builds the dashboard from the json serialized structs.
 func (d *Dashboard) Create() {
 
 	rows := make([]*ui.Row, 0)
@@ -136,6 +137,7 @@ func asyncUpdate(f func(TS.TimeSelect), t TS.TimeSelect, done chan bool) {
 	}()
 }
 
+//UpdateAll updates all of our stat widgets.
 func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 	finChan := make(chan bool, 0)
 	exp := float64(0)
@@ -185,6 +187,7 @@ func updateLoading(rows []*Row, percent int) {
 	}
 }
 
+//GetGrid returns the current grid.
 func (d *Dashboard) GetGrid() *ui.Grid {
 	return d.Grid
 }

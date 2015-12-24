@@ -66,7 +66,7 @@ const (
 //which should come from parsing a json dashboard.
 func NewSparkLines(db DB.DBI, s *SparkLines) *SparkLines {
 	s.SL = ui.NewSparklines()
-	h := defaultHeight
+	h := s.Height
 	merge.Merge(s, s.SL, "SL", "Lines")
 
 	for _, line := range s.Lines {

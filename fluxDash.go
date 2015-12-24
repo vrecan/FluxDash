@@ -57,12 +57,22 @@ func GetDashbordsFromFlag(db DB.DBI) (dashboards []DASH.Stats) {
 			return dashboards
 		}
 		for _, f := range files {
-			dashboards = append(dashboards, DASH.NewDashboardFromFile(db, f))
+			d, err := DASH.NewDashboardFromFile(db, f)
+			if nil != err {
+				log.Error("Failed to laod dashboard from file: ", f, " error: ", err)
+				continue
+			}
+			dashboards = append(dashboards, d)
 		}
 
 	} else {
 		//parse as a single dashboard file
-		dashboards = append(dashboards, DASH.NewDashboardFromFile(db, path))
+		d, err := DASH.NewDashboardFromFile(db, path)
+		if nil != err {
+			log.Error("Failed to laod dashboard from file: ", path, " error: ", err)
+		} else {
+			dashboards = append(dashboards, d)
+		}
 
 	}
 	return dashboards
