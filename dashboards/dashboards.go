@@ -164,9 +164,7 @@ func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 	for _ = range finChan {
 		rcvd++
 		percent := float64(rcvd/exp) * 100
-		log.Info("PERCENT: ", percent)
-		log.Info("RCVD: ", rcvd)
-		log.Info("Total: ", exp)
+		log.Debug("Loading PERCENT: ", percent)
 
 		updateLoading(d.Rows, int(percent))
 		d.Grid.Align()
