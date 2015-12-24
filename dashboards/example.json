@@ -25,21 +25,15 @@
 			"height": 1,
 			"span": 3,
 			"offset": 0,
-			"gauge": {
+			"loading": {
 				"height": 3,
-				"from": "/es.*.FS.Used.Percent/",
-				"where": "service='gomaintain'",
 				"border": true,
-				"BorderLabel": "ES",
 				"bordertop": true,
 				"borderbottom": true,
 				"borderright": true,
 				"borderleft": true,
 				"BarColor": 5,
-				"BorderBg": 5,
-				"label": "Disk Used"
-
-
+				"BorderFg": 5
 			}
 		}]
 	},
@@ -93,7 +87,25 @@
 				"where": "service='gomaintain'",
 				"borderLabel": "Elastic Indices"
 			}
-		}]
+		},{
+		"height": 1,
+		"span": 6,
+		"offset": 0,
+		"gauge": {
+			"height": 3,
+			"from": "/es.*.FS.Used.Percent/",
+			"where": "service='gomaintain'",
+			"border": true,
+			"BorderLabel": "ES",
+			"bordertop": true,
+			"borderbottom": true,
+			"borderright": true,
+			"borderleft": true,
+			"BarColor": 5,
+			"BorderBg": 5,
+			"label": "Disk Used"
+		}
+	}]
 	},
 		 {
 		"height": 1,

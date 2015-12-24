@@ -7,6 +7,7 @@ import (
 	BC "github.com/vrecan/FluxDash/barchart"
 	G "github.com/vrecan/FluxDash/gauge"
 	DB "github.com/vrecan/FluxDash/influx"
+	LD "github.com/vrecan/FluxDash/loading"
 	MS "github.com/vrecan/FluxDash/multispark"
 	SL "github.com/vrecan/FluxDash/sparkline"
 	TP "github.com/vrecan/FluxDash/timep"
@@ -48,6 +49,7 @@ type Column struct {
 	BarChart   *BC.BarChart   `json:"barchart,omitempty"`
 	Gauge      *G.Gauge       `json:"gauge,omitempty"`
 	MultiSpark *MS.MultiSpark `json:"multispark,omitempty"`
+	Loading    *LD.Loading    `json:"loading,omitempty"`
 }
 
 func NewDashboard(db DB.DBI) *Dashboard {
@@ -112,6 +114,10 @@ func (d *Dashboard) Create() {
 				c.Gauge = G.NewGauge(d.db, c.Gauge)
 				col := ui.NewCol(c.Span, c.Offset, c.Gauge.G)
 				columns = append(columns, col)
+			} else if nil != c.Loading {
+				c.Loading = LD.NewLoading(c.Loading)
+				col := ui.NewCol(c.Span, c.Offset, c.Loading.G)
+				columns = append(columns, col)
 			}
 		}
 		r.row.Cols = columns
@@ -154,12 +160,27 @@ func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 		}
 	}
 	//select with timer might be more robust here
+	total := exp
+	rcvd := 0
 	for _ = range finChan {
 		exp--
+		rcvd++
+		percent := rcvd / total * 100
+		updateLoading(d.Rows, percent)
 		d.Grid.Align()
 		ui.Render(d.Grid)
 		if exp == 0 {
 			break
+		}
+	}
+}
+
+func updateLoading(rows []*Row, percent int) {
+	for _, r := range rows {
+		for _, c := range r.Columns {
+			if nil != c.Loading {
+				c.Loading.Update(int(percent))
+			}
 		}
 	}
 }
