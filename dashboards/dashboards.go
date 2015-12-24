@@ -138,7 +138,7 @@ func asyncUpdate(f func(TS.TimeSelect), t TS.TimeSelect, done chan bool) {
 
 func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 	finChan := make(chan bool, 0)
-	exp := 0
+	exp := float64(0)
 	for _, r := range d.Rows {
 		for _, c := range r.Columns {
 			if nil != c.TimeP {
@@ -160,16 +160,16 @@ func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 		}
 	}
 	//select with timer might be more robust here
-	total := exp
-	rcvd := 0
+	rcvd := float64(0)
 	for _ = range finChan {
-		exp--
 		rcvd++
-		percent := rcvd / total * 100
-		updateLoading(d.Rows, percent)
+		percent := float64(rcvd/exp) * 100
+		log.Debug("Loading PERCENT: ", percent)
+
+		updateLoading(d.Rows, int(percent))
 		d.Grid.Align()
 		ui.Render(d.Grid)
-		if exp == 0 {
+		if percent == 100 {
 			break
 		}
 	}
