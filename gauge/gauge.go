@@ -1,4 +1,4 @@
-package guage
+package gauge
 
 import (
 	"fmt"

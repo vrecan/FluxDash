@@ -1,6 +1,7 @@
 package merge
 
 import (
+	log "github.com/cihub/seelog"
 	ST "github.com/fatih/structs"
 )
 
@@ -23,7 +24,7 @@ main:
 		}
 		err := dstStruct.Field(field.Name()).Set(field.Value())
 		if nil != err {
-			panic(err)
+			log.Error("Failed to assign value from to field ", field.Name(), " got error ", err)
 		}
 	}
 	return dst

@@ -17,7 +17,7 @@
 			"offset": 0,
 			"p": {
 				"height": 3,
-				"text": "Static text is all the rage!!!",
+				"text": "Ben is the greatest faster ever!!!",
 				"border": true
 			}
 		},
@@ -36,6 +36,7 @@
 				"borderright": true,
 				"borderleft": true,
 				"BarColor": 5,
+				"BorderBg": 5,
 				"label": "Disk Used"
 
 
