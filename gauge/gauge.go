@@ -1,4 +1,4 @@
-package guage
+package gauge
 
 import (
 	"fmt"
@@ -58,7 +58,9 @@ func (s *Gauge) Update(time TS.TimeSelect) {
 //SetData will set the data for the bar.
 func (s *Gauge) SetData(time string) {
 	meanTotal := query.GetIntData(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
-	s.G.Percent = meanTotal[0]
+	if len(meanTotal) > 0 {
+		s.G.Percent = meanTotal[0]
+	}
 }
 
 //SetTitle will set the label of the gauge.
@@ -70,5 +72,10 @@ func (s *Gauge) SetTitle(time string) {
 		s.G.Percent = 0
 	}
 	maxTotal := query.GetIntData(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
-	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Label, s.G.Percent, maxTotal[0])
+	var max int
+	if len(maxTotal) > 0 {
+		max = maxTotal[0]
+	}
+	s.G.Label = fmt.Sprintf("%s mean:%v%% max:%v%%", s.Label, s.G.Percent, max)
+
 }
