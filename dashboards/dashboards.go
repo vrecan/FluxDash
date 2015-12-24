@@ -2,7 +2,6 @@ package dashboards
 
 import (
 	"encoding/json"
-	"fmt"
 	log "github.com/cihub/seelog"
 	ui "github.com/gizak/termui"
 	BC "github.com/vrecan/FluxDash/barchart"
@@ -49,38 +48,6 @@ type Column struct {
 	BarChart   *BC.BarChart   `json:"barchart,omitempty"`
 	Gauge      *G.Gauge       `json:"gauge,omitempty"`
 	MultiSpark *MS.MultiSpark `json:"multispark,omitempty"`
-}
-
-func CreateExampleDash() {
-	dash := ExampleDash(nil)
-
-	raw, err := json.Marshal(dash)
-	fmt.Println("err: ", err)
-	fmt.Println("json: ", string(raw))
-}
-
-//ExampleDash returns an example dashboard with all basic stuff filled out.
-func ExampleDash(db DB.DBI) *Dashboard {
-	dash := NewDashboard(db)
-	sl1 := &SL.SparkLine{Title: "CPU", From: "/system.cpu/", Where: "", Height: 1, DataType: 1}
-	sl2 := &SL.SparkLine{Title: "Dispatch GC", Height: 1, From: "/gc.pause.ns/", Where: `"service"= 'godispatch'`, DataType: 1}
-	sparks := make([]*SL.SparkLine, 0)
-	sparks = append(sparks, sl1, sl2)
-	sparkLines := &Column{Height: 1, Span: 12, SparkLines: &SL.SparkLines{BorderLabel: "System", Border: true, Lines: sparks}}
-	columns := make([]*Column, 0)
-	columns = append(columns, sparkLines)
-	dash.Rows = append(dash.Rows, &Row{Height: 1, Span: 12, Offset: 0, Columns: columns})
-	p1 := &Column{Height: 1, Span: 6, Offset: 0, P: &P{Text: "Static text is all the rage!!!", Height: 3, Border: true}}
-	columns2 := make([]*Column, 0)
-	columns2 = append(columns2, p1)
-	dash.Rows = append(dash.Rows, &Row{Height: 1, Span: 12, Offset: 0, Columns: columns2})
-	ptRow := &Column{Height: 1, Span: 6, Offset: 0, TimeP: &TP.TimeP{Height: 3, Border: true}}
-	columns3 := make([]*Column, 0)
-	columns3 = append(columns3, ptRow)
-
-	dash.Rows = append(dash.Rows, &Row{Height: 1, Span: 12, Offset: 0, Columns: columns3})
-
-	return dash
 }
 
 func NewDashboard(db DB.DBI) *Dashboard {
