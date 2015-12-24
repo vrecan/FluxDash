@@ -61,10 +61,6 @@ func NewMultiSpark(db DB.DBI, ms *MultiSpark) *MultiSpark {
 	ms.db = db
 	ms.SL = ui.NewSparklines()
 	merge.Merge(ms, ms.SL, "db", "from", "where")
-
-	// ms.SL.Bg = ms.Bg
-	// ms.SL.BorderLabel = ms.BorderLabel
-	// ms.SL.Border = ms.Border
 	return ms
 }
 
