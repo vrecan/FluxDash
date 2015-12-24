@@ -75,6 +75,7 @@ func NewDashboardFromFile(db DB.DBI, f string) (dash *Dashboard, err error) {
 	return dash, err
 }
 
+//Create builds the dashboard from the json serialized structs.
 func (d *Dashboard) Create() {
 
 	rows := make([]*ui.Row, 0)
@@ -136,6 +137,7 @@ func asyncUpdate(f func(TS.TimeSelect), t TS.TimeSelect, done chan bool) {
 	}()
 }
 
+//UpdateAll updates all of our stat widgets.
 func (d *Dashboard) UpdateAll(time *TS.TimeSelect) {
 	finChan := make(chan bool, 0)
 	exp := float64(0)
@@ -185,6 +187,7 @@ func updateLoading(rows []*Row, percent int) {
 	}
 }
 
+//GetGrid returns the current grid.
 func (d *Dashboard) GetGrid() *ui.Grid {
 	return d.Grid
 }
