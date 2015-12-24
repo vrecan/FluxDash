@@ -17,7 +17,7 @@
 			"offset": 0,
 			"p": {
 				"height": 3,
-				"text": "Example Dashboard",
+				"text": "System Health",
 				"border": true
 			}
 		},
@@ -46,28 +46,30 @@
 			"span": 12,
 			"offset": 0,
 			"sparklines": {
-				"borderlabel" : "Random System Stats",
-				"borderlabelfg" : 4,
-				"border": true,
-				"borderfg" : 4,
-				"Bordertop" : true,
-				"Borderbottom" : true,
-				"Borderleft" : true,
-				"Borderright" : true,
-				"borderbg": 2,
+				"Height" : 1,
 				"lines": [{
 					"from": "/system.cpu/",
 					"title": "CPU",
 					"where": "",
 					"type": 2,
-					"height": 5,
+					"height": 1,
 					"linecolor" : 5,
 					"titlecolor": 0
 				}, {
-					"from": "/gc.pause.ns/",
-					"title": "Dispatch GC",
-					"where": "\"service\"= 'godispatch'",
-					"type": 4,
+					"from": "/system.mem.free/",
+					"title": "System Free memory",
+					"type": 3,
+					"height": 1
+				},
+				{
+					"from": "/system.mem.cached/",
+					"title": "System Cached memory",
+					"type": 3,
+					"height": 1
+				},{
+					"from": "/system.mem.buffers/",
+					"title": "System Buffers memory",
+					"type": 3,
 					"height": 1
 				}]
 			}
@@ -106,6 +108,35 @@
 			"label": "Disk Used"
 		}
 	}]
+},{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"sparklines": {
+				"Height" : 1,
+				"lines": [{
+					"from": "/system.disk.[^dm|util].*.read.bytes/",
+					"title": "Total Disk IO READ Bytes",
+					"where": "",
+					"type": 3,
+					"height": 1,
+					"linecolor" : 5,
+					"titlecolor": 0
+				},{
+					"from": "/system.disk.[^dm|util].*.write.bytes/",
+					"title": "Total Disk IO Write Bytes",
+					"where": "",
+					"type": 3,
+					"height": 1,
+					"linecolor" : 5,
+					"titlecolor": 0
+				}]
+			}
+		}]
 	},
 		 {
 		"height": 1,

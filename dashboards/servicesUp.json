@@ -1,0 +1,66 @@
+{
+	"rows": [{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"timep": {
+				"height": 3,
+				"border": true
+			}
+		},{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"p": {
+				"height": 3,
+				"text": "Services Up",
+				"border": true
+			}
+		},
+		{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"loading": {
+				"height": 3,
+				"border": true,
+				"bordertop": true,
+				"borderbottom": true,
+				"borderright": true,
+				"borderleft": true,
+				"BarColor": 5,
+				"BorderFg": 5
+			}
+		}]
+	},
+	 {
+	"height": 1,
+	"span": 12,
+	"offset": 0,
+	"columns": [{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"multispark": {
+			"height": 3,
+			"from": "/service.status.*/",
+			"where": "",
+			"borderLabel": "Service Status",
+			"border" : true,
+			"Bordertop" : true,
+			"Borderbottom" : true,
+			"Borderleft" : true,
+			"Borderright" : true,
+			"Borderfg": 4,				
+			"bg" : 1,
+			"type": 1,
+			"autocolor": true,
+			"titlecolor": 6
+		}
+	}]
+}]
+}
