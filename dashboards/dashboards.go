@@ -58,21 +58,21 @@ func NewDashboard(db DB.DBI) *Dashboard {
 }
 
 //Dashboard get dash from path.
-func NewDashboardFromFile(db DB.DBI, f string) *Dashboard {
-	mem, e := ioutil.ReadFile(f)
-	if e != nil {
-		log.Critical("File error: ", e)
+func NewDashboardFromFile(db DB.DBI, f string) (dash *Dashboard, err error) {
+	mem, err := ioutil.ReadFile(f)
+	if nil != err {
+		return nil, err
 	}
+	dash = &Dashboard{}
 
 	// var jsontype jsonobject
-	dash := &Dashboard{}
-	err := json.Unmarshal(mem, dash)
+	err = json.Unmarshal(mem, dash)
 	if nil != err {
-		panic(err)
+		return nil, err
 	}
 	dash.db = db
 	dash.Time = &TS.TimeSelect{}
-	return dash
+	return dash, err
 }
 
 func (d *Dashboard) Create() {
