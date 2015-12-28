@@ -11,8 +11,8 @@ Here is an example dashboard. In the image below you will see that I am adjustin
 This will become configurable eventually but these are the most commonly used in our system.
 
 ![Example Dashboard](/fluxdashv2.gif)
+You will also notice that the refresh and the group by interval are adjusted based on the time range. Again this will be come configurable at a later date. FluxDash uses a standard grid based system with rows and columns. 
 
-You will also notice that the refresh and the group by interval are adjusted based on the time range. Again this will be come configurable at a later date.
 
 ```json
 	"rows": [{
