@@ -78,10 +78,11 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 	meanTotal, _ := query.GetIntDataFromTags(s.db, query.Build("mean(value)", s.From, s.Where, time, ""))
 	maxTotal, _ := query.GetIntDataFromTags(s.db, query.Build("max(value)", s.From, s.Where, time, ""))
 	autoColorc := 0
-	var uiSparks []ui.Sparkline
+	uiSparks := make([]ui.Sparkline, 0)
 	for i, _ := range data {
+		DataExists := true
 		line := ui.NewSparkline()
-		line.Data = data[i]
+		line.Height = 1
 		if s.AutoColor {
 			if autoColorc > len(colors)-1 {
 				autoColorc = 0
@@ -97,21 +98,41 @@ func (s *MultiSpark) SetDataAndTitle(time string, groupBy string) {
 			line.LineColor = s.LineColor
 			line.TitleColor = s.TitleColor
 		}
-		switch s.DataType {
-		case Percent:
-			line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
-		case Bytes:
-			line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], H.Bytes(uint64(meanTotal[i][0])), H.Bytes(uint64(maxTotal[i][0])), H.Bytes(uint64(data[i][len(data[i])-1])))
-		case Short:
-			line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], H.Comma(int64(meanTotal[i][0])), H.Comma(int64(maxTotal[i][0])), H.Comma(int64(data[i][len(data[i])-1])))
-		case Time:
-			line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], timecop.GetCommaString(float64(meanTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(data[i][len(data[i])-1]), "nanoseconds"))
-		default:
-			log.Critical("Data type is invalid: ", s.DataType)
+		if len(data[i]) < 1 || len(meanTotal[i]) < 1 || len(maxTotal[i]) < 1 {
+			DataExists = false
+		}
+
+		if DataExists {
+			for in, d := range data[i] {
+				if d < 0 {
+					data[i][in] = 0
+				}
+			}
+			line.Data = data[i]
+			switch s.DataType {
+
+			case Percent:
+				line.Title = fmt.Sprintf("%s mean:%v%% max:%v%% cur: %v", labels[i], meanTotal[i][0], maxTotal[i][0], data[i][len(data[i])-1])
+			case Bytes:
+				line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], H.Bytes(uint64(meanTotal[i][0])), H.Bytes(uint64(maxTotal[i][0])), H.Bytes(uint64(data[i][len(data[i])-1])))
+			case Short:
+				line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], H.Comma(int64(meanTotal[i][0])), H.Comma(int64(maxTotal[i][0])), H.Comma(int64(data[i][len(data[i])-1])))
+			case Time:
+				line.Title = fmt.Sprintf("%s mean:%v max:%v cur: %v", labels[i], timecop.GetCommaString(float64(meanTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(maxTotal[i][0]), "nanoseconds"), timecop.GetCommaString(float64(data[i][len(data[i])-1]), "nanoseconds"))
+			default:
+				log.Critical("Data type is invalid: ", s.DataType)
+			}
+		} else {
+			if len(labels[i]) < 1 {
+				line.Title = "No Data"
+			}
+			line.Title = fmt.Sprintf("%s No Data")
 		}
 		uiSparks = append(uiSparks, line)
 	}
-	s.SL.Lines = uiSparks
-	s.SL.Height = 3 + len(data)*2
+	if len(uiSparks) > 0 {
+		s.SL.Lines = uiSparks
+		s.SL.Height = 3 + len(data)*2
+	}
 
 }
