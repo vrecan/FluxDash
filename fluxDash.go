@@ -23,7 +23,7 @@ func main() {
 	}
 
 	log.ReplaceLogger(logger)
-	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "admin", Password: "logrhythm!1"}
+	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "", Password: ""}
 	db, err := DB.NewInflux(c)
 	if nil != err {
 		panic(err)
