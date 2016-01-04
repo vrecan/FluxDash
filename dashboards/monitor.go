@@ -1,11 +1,11 @@
 package dashboards
 
 import (
-	"sync"
-	"time"
-
+	// "fmt"
 	ui "github.com/gizak/termui"
 	TS "github.com/vrecan/FluxDash/timeselect"
+	"sync"
+	"time"
 )
 
 //Keybaord consts
@@ -56,6 +56,8 @@ loop:
 				if counter%uint64(refresh) == 0 {
 					(e.Dash).UpdateAll(e.Time)
 				}
+			} else if e.Type == KBD_N {
+				e.Monitor.NextDash()
 			}
 
 		case event := <-inputQ:
@@ -71,7 +73,7 @@ loop:
 			} else if e.Type == TIME {
 				timeDebounceChan <- e
 			} else if e.Type == KBD_N {
-				e.Monitor.NextDash()
+				timeDebounceChan <- e
 			} else if e.Type == RESIZE {
 				(e.Dash).GetGrid().Width = ui.TermWidth()
 				(e.Dash).GetGrid().Align()
