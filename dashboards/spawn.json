@@ -1,0 +1,145 @@
+{
+	"rows": [{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 6,
+			"offset": 0,
+			"timep": {
+				"height": 3,
+				"border": true
+			}
+		},{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"p": {
+				"height": 3,
+				"text": "Spawn",
+				"border": true
+			}
+		},
+		{
+			"height": 1,
+			"span": 3,
+			"offset": 0,
+			"loading": {
+				"height": 3,
+				"border": true,
+				"bordertop": true,
+				"borderbottom": true,
+				"borderright": true,
+				"borderleft": true,
+				"BarColor": 5,
+				"BorderFg": 5
+			}
+		}]
+	},
+
+	{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"multispark": {
+				"height": 3,
+				"from": "/http.send.*/",
+				"where": "service='spawn'",
+				"borderLabel": "HTTP",
+				"border" : true,
+				"Bordertop" : true,
+				"Borderbottom" : true,
+				"Borderleft" : true,
+				"Borderright" : true,
+				"Borderfg": 4,				
+				"bg" : 1,
+				"type": 1,
+				"autocolor": true,
+				"titlecolor": 6
+			}
+		}]
+	},
+
+	{
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"multispark": {
+				"height": 3,
+				"from": "/zmq.send.*/",
+				"where": "service='spawn'",
+				"borderLabel": "Send to dispatch",
+				"border" : true,
+				"Bordertop" : true,
+				"Borderbottom" : true,
+				"Borderleft" : true,
+				"Borderright" : true,
+				"Borderfg": 4,				
+				"bg" : 1,
+				"type": 1,
+				"autocolor": true,
+				"titlecolor": 6
+			}
+		}]
+	},
+		 {
+		"height": 1,
+		"span": 12,
+		"offset": 0,
+		"columns": [{
+			"height": 1,
+			"span": 12,
+			"offset": 0,
+			"sparklines": {
+				"Height" : 1,
+				"lines": [{
+					"from": "/cpu.percent/",
+					"title": "CPU",
+					"where": "service='spawn'",
+					"type": 2,
+					"height": 1,
+					"linecolor" : 5,
+					"titlecolor": 0
+				}, {
+					"from": "/mem.rss/",
+					"title": "Resident Memory",
+					"type": 3,
+					"height": 2,
+					"where": "service='spawn'"
+				},
+				{
+					"from": "/mem.vms/",
+					"title": "Virtual Memory",
+					"type": 3,
+					"height": 2,
+					"where": "service='spawn'"
+				},{
+					"from": "/mem.swap/",
+					"title": "Swap Memory",
+					"type": 3,
+					"height": 2,
+					"where": "service='spawn'"
+				},
+				{
+					"from": "/gc.pause.ns/",
+					"title": "GC Pause",
+					"where": "service='spawn'",
+					"type": 4,
+					"height": 1,
+					"linecolor" : 5,
+					"titlecolor": 0
+				}]
+			}
+		}]
+	}]
+}
+

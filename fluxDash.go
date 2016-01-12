@@ -51,7 +51,6 @@ func GetDashbordsFromFlag(db DB.DBI) (dashboards []DASH.Stats) {
 	if info.IsDir() {
 		globPattern := fmt.Sprintf("%s%s*.json", path, string(FP.Separator))
 		files, err := FP.Glob(globPattern)
-		fmt.Println(files)
 		if nil != err {
 			log.Error("Failed parsing json files in path: ", path, " with error: ", err)
 			return dashboards

@@ -10,13 +10,13 @@ import (
 
 func Build(sel string, from string, where string, time string, groupBy string) string {
 	if len(sel) == 0 || len(from) == 0 || len(time) == 0 {
-		log.Critical("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, groupBy))
+		log.Critical("invalid query string :", fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s fill(0)", sel, from, where, groupBy))
 		return ""
 	}
 	if len(where) > 0 {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s", sel, from, where, time, groupBy)
+		return fmt.Sprintf("SELECT %s FROM %s WHERE %s AND time > %s %s fill(0)", sel, from, where, time, groupBy)
 	} else {
-		return fmt.Sprintf("SELECT %s FROM %s WHERE time > %s %s", sel, from, time, groupBy)
+		return fmt.Sprintf("SELECT %s FROM %s WHERE time > %s %s fill(0)", sel, from, time, groupBy)
 	}
 }
 
