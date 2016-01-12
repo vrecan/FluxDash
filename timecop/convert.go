@@ -22,8 +22,9 @@ var Units map[string]*UnitInfo
 
 func init() {
 	Units = make(map[string]*UnitInfo)
-	Units["nanoseconds"] = &UnitInfo{MinRounded: 0, MaxRounded: 999, NextRatio: 1000, PrevRatio: 0, Prev: "", Next: "milliseconds"}
-	Units["milliseconds"] = &UnitInfo{MinRounded: 1, MaxRounded: 999, NextRatio: 1000, PrevRatio: 1000, Prev: "nanoseconds", Next: "seconds"}
+	Units["nanoseconds"] = &UnitInfo{MinRounded: 0, MaxRounded: 999, NextRatio: 1000, PrevRatio: 0, Prev: "", Next: "microseconds"}
+	Units["microseconds"] = &UnitInfo{MinRounded: 1, MaxRounded: 999, NextRatio: 1000, PrevRatio: 1000, Prev: "nanoseconds", Next: "milliseconds"}
+	Units["milliseconds"] = &UnitInfo{MinRounded: 1, MaxRounded: 999, NextRatio: 1000, PrevRatio: 1000, Prev: "microseconds", Next: "seconds"}
 	Units["seconds"] = &UnitInfo{MinRounded: 1, MaxRounded: 59, NextRatio: 60, PrevRatio: 1000, Prev: "milliseconds", Next: "minutes"}
 	Units["minutes"] = &UnitInfo{MinRounded: 1, MaxRounded: 59, NextRatio: 60, PrevRatio: 60, Prev: "seconds", Next: "hours"}
 	Units["hours"] = &UnitInfo{MinRounded: 1, MaxRounded: 23, NextRatio: 24, PrevRatio: 60, Prev: "minutes", Next: "days"}

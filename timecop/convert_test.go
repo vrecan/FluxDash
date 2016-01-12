@@ -10,6 +10,7 @@ func TestConvert(t *testing.T) {
 
 	Convey("supportedTypes", t, func() {
 		So(Units["nanoseconds"].MinRounded, ShouldEqual, 0)
+		So(Units["microseconds"].MinRounded, ShouldEqual, 1)
 		So(Units["milliseconds"].MinRounded, ShouldEqual, 1)
 		So(Units["seconds"].MinRounded, ShouldEqual, 1)
 		So(Units["minutes"].MinRounded, ShouldEqual, 1)
@@ -20,6 +21,7 @@ func TestConvert(t *testing.T) {
 		So(Units["millenia"].MinRounded, ShouldEqual, 1)
 
 		So(Units["nanoseconds"].MaxRounded, ShouldEqual, 999)
+		So(Units["microseconds"].MaxRounded, ShouldEqual, 999)
 		So(Units["milliseconds"].MaxRounded, ShouldEqual, 999)
 		So(Units["seconds"].MaxRounded, ShouldEqual, 59)
 		So(Units["minutes"].MaxRounded, ShouldEqual, 59)
@@ -30,6 +32,7 @@ func TestConvert(t *testing.T) {
 		So(Units["millenia"].MaxRounded, ShouldEqual, 0)
 
 		So(Units["nanoseconds"].NextRatio, ShouldEqual, 1000)
+		So(Units["microseconds"].NextRatio, ShouldEqual, 1000)
 		So(Units["milliseconds"].NextRatio, ShouldEqual, 1000)
 		So(Units["seconds"].NextRatio, ShouldEqual, 60)
 		So(Units["minutes"].NextRatio, ShouldEqual, 60)
@@ -39,7 +42,8 @@ func TestConvert(t *testing.T) {
 		So(Units["centuries"].NextRatio, ShouldEqual, 10)
 		So(Units["millenia"].NextRatio, ShouldEqual, 0)
 
-		So(Units["nanoseconds"].Next, ShouldEqual, "milliseconds")
+		So(Units["nanoseconds"].Next, ShouldEqual, "microseconds")
+		So(Units["microseconds"].Next, ShouldEqual, "milliseconds")
 		So(Units["milliseconds"].Next, ShouldEqual, "seconds")
 		So(Units["seconds"].Next, ShouldEqual, "minutes")
 		So(Units["minutes"].Next, ShouldEqual, "hours")
@@ -50,8 +54,9 @@ func TestConvert(t *testing.T) {
 		So(Units["millenia"].Next, ShouldEqual, "")
 
 		So(Units["nanoseconds"].Prev, ShouldEqual, "")
-		So(Units["milliseconds"].Prev, ShouldEqual, "nanoseconds")
-		So(Units["seconds"].Prev, ShouldEqual, Units["nanoseconds"].Next)
+		So(Units["microseconds"].Prev, ShouldEqual, "nanoseconds")
+		So(Units["milliseconds"].Prev, ShouldEqual, "microseconds")
+		So(Units["seconds"].Prev, ShouldEqual, Units["microseconds"].Next)
 		So(Units["minutes"].Prev, ShouldEqual, Units["milliseconds"].Next)
 		So(Units["hours"].Prev, ShouldEqual, Units["seconds"].Next)
 		So(Units["days"].Prev, ShouldEqual, Units["minutes"].Next)
@@ -59,7 +64,8 @@ func TestConvert(t *testing.T) {
 		So(Units["centuries"].Prev, ShouldEqual, Units["days"].Next)
 		So(Units["millenia"].Prev, ShouldEqual, Units["years"].Next)
 
-		So(Units["nanoseconds"].NextRatio, ShouldEqual, Units["milliseconds"].PrevRatio)
+		So(Units["nanoseconds"].NextRatio, ShouldEqual, Units["microseconds"].PrevRatio)
+		So(Units["microseconds"].NextRatio, ShouldEqual, Units["milliseconds"].PrevRatio)
 		So(Units["milliseconds"].NextRatio, ShouldEqual, Units["seconds"].PrevRatio)
 		So(Units["seconds"].NextRatio, ShouldEqual, Units["minutes"].PrevRatio)
 		So(Units["minutes"].NextRatio, ShouldEqual, Units["hours"].PrevRatio)
@@ -70,7 +76,8 @@ func TestConvert(t *testing.T) {
 		So(Units["millenia"].NextRatio, ShouldEqual, 0)
 
 		So(Units["nanoseconds"].PrevRatio, ShouldEqual, 0)
-		So(Units["milliseconds"].PrevRatio, ShouldEqual, Units["nanoseconds"].NextRatio)
+		So(Units["microseconds"].PrevRatio, ShouldEqual, Units["nanoseconds"].NextRatio)
+		So(Units["milliseconds"].PrevRatio, ShouldEqual, Units["microseconds"].NextRatio)
 		So(Units["seconds"].PrevRatio, ShouldEqual, Units["milliseconds"].NextRatio)
 		So(Units["minutes"].PrevRatio, ShouldEqual, Units["seconds"].NextRatio)
 		So(Units["hours"].PrevRatio, ShouldEqual, Units["minutes"].NextRatio)
@@ -129,5 +136,12 @@ func TestConvert(t *testing.T) {
 	Convey("bad unit CommaString", t, func() {
 		thing := GetCommaString(1, "s")
 		So(thing, ShouldEqual, "NaN")
+	})
+
+	Convey("Test normal nano time sample", t, func() {
+		time, unit, err := GetRoundedTime(37968238, "nanoseconds")
+		So(err, ShouldBeNil)
+		So(time, ShouldEqual, 37.968238)
+		So(unit, ShouldEqual, "milliseconds")
 	})
 }

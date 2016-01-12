@@ -62,9 +62,7 @@ loop:
 
 		case event := <-inputQ:
 			e := event.(Event)
-			if e.Type == KBD_Q {
-				ui.StopLoop()
-			} else if e.Type == KBD_T {
+			if e.Type == KBD_T {
 				timeDebounceChan <- e
 			} else if e.Type == KBD_Y {
 				timeDebounceChan <- e
@@ -145,7 +143,7 @@ func (m *Monitor) run() {
 	defer ui.Close()
 	m.time.CurTime()
 
-	inputQ := make(chan interface{}, 100)
+	inputQ := make(chan interface{}, 1000)
 
 	done := make(chan bool)
 	wg := &sync.WaitGroup{}
@@ -153,7 +151,7 @@ func (m *Monitor) run() {
 	go CommandQ(inputQ, done, wg)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
-		inputQ <- Event{Type: KBD_Q}
+		ui.StopLoop()
 	})
 	//adjust time range
 	ui.Handle("/sys/kbd/t", func(ui.Event) {

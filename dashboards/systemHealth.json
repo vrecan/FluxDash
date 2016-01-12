@@ -52,25 +52,25 @@
 					"title": "CPU",
 					"where": "",
 					"type": 2,
-					"height": 1,
+					"height": 2,
 					"linecolor" : 5,
 					"titlecolor": 0
 				}, {
 					"from": "/system.mem.free/",
 					"title": "System Free memory",
 					"type": 3,
-					"height": 1
+					"height": 2
 				},
 				{
 					"from": "/system.mem.cached/",
 					"title": "System Cached memory",
 					"type": 3,
-					"height": 1
+					"height": 2
 				},{
 					"from": "/system.mem.buffers/",
 					"title": "System Buffers memory",
 					"type": 3,
-					"height": 1
+					"height": 2
 				}]
 			}
 		}]
