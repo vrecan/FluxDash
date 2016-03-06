@@ -26,7 +26,6 @@ package seelog
 
 import (
 	"bytes"
-	"encoding/xml"
 	"io"
 	"os"
 )
@@ -44,7 +43,7 @@ func LoggerFromConfigAsFile(fileName string) (LoggerInterface, error) {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	return createLoggerFromConfig(conf)
 }
 
 // LoggerFromConfigAsBytes creates a logger with config from bytes stream. Bytes should contain valid seelog xml.
@@ -54,7 +53,7 @@ func LoggerFromConfigAsBytes(data []byte) (LoggerInterface, error) {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	return createLoggerFromConfig(conf)
 }
 
 // LoggerFromConfigAsString creates a logger with config from a string. String should contain valid seelog xml.
@@ -63,8 +62,8 @@ func LoggerFromConfigAsString(data string) (LoggerInterface, error) {
 }
 
 // LoggerFromParamConfigAsFile does the same as LoggerFromConfigAsFile, but includes special parser options.
-// See 'cfgParseParams' comments.
-func LoggerFromParamConfigAsFile(fileName string, parserParams *cfgParseParams) (LoggerInterface, error) {
+// See 'CfgParseParams' comments.
+func LoggerFromParamConfigAsFile(fileName string, parserParams *CfgParseParams) (LoggerInterface, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
@@ -76,23 +75,23 @@ func LoggerFromParamConfigAsFile(fileName string, parserParams *cfgParseParams) 
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	return createLoggerFromConfig(conf)
 }
 
 // LoggerFromParamConfigAsBytes does the same as LoggerFromConfigAsBytes, but includes special parser options.
-// See 'cfgParseParams' comments.
-func LoggerFromParamConfigAsBytes(data []byte, parserParams *cfgParseParams) (LoggerInterface, error) {
+// See 'CfgParseParams' comments.
+func LoggerFromParamConfigAsBytes(data []byte, parserParams *CfgParseParams) (LoggerInterface, error) {
 	conf, err := configFromReaderWithConfig(bytes.NewBuffer(data), parserParams)
 	if err != nil {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	return createLoggerFromConfig(conf)
 }
 
 // LoggerFromParamConfigAsString does the same as LoggerFromConfigAsString, but includes special parser options.
-// See 'cfgParseParams' comments.
-func LoggerFromParamConfigAsString(data string, parserParams *cfgParseParams) (LoggerInterface, error) {
+// See 'CfgParseParams' comments.
+func LoggerFromParamConfigAsString(data string, parserParams *CfgParseParams) (LoggerInterface, error) {
 	return LoggerFromParamConfigAsBytes([]byte(data), parserParams)
 }
 
@@ -109,36 +108,25 @@ func LoggerFromWriterWithMinLevel(output io.Writer, minLevel LogLevel) (LoggerIn
 //
 // Can be called for usage with non-Seelog systems
 func LoggerFromWriterWithMinLevelAndFormat(output io.Writer, minLevel LogLevel, format string) (LoggerInterface, error) {
-	constraints, err := NewMinMaxConstraints(minLevel, CriticalLvl)
+	constraints, err := newMinMaxConstraints(minLevel, CriticalLvl)
 	if err != nil {
 		return nil, err
 	}
-	formatter, err := NewFormatter(format)
+	formatter, err := newFormatter(format)
 	if err != nil {
 		return nil, err
 	}
-	dispatcher, err := NewSplitDispatcher(formatter, []interface{}{output})
-	if err != nil {
-		return nil, err
-	}
-
-	conf, err := newFullLoggerConfig(constraints, make([]*LogLevelException, 0), dispatcher, syncloggerTypeFromString, nil, nil)
+	dispatcher, err := newSplitDispatcher(formatter, []interface{}{output})
 	if err != nil {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
-}
-
-// LoggerFromXMLDecoder creates logger with config from a XML decoder starting from a specific node.
-// It should contain valid seelog xml, except for root node name.
-func LoggerFromXMLDecoder(xmlParser *xml.Decoder, rootNode xml.Token) (LoggerInterface, error) {
-	conf, err := configFromXMLDecoder(xmlParser, rootNode)
+	conf, err := newConfig(constraints, make([]*logLevelException, 0), dispatcher, syncloggerTypeFromString, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	return createLoggerFromConfig(conf)
 }
 
 // LoggerFromCustomReceiver creates a proxy logger that uses a CustomReceiver as the
@@ -165,24 +153,24 @@ func LoggerFromXMLDecoder(xmlParser *xml.Decoder, rootNode xml.Token) (LoggerInt
 // * LoggerFromCustomReceiver takes value and uses it without modification and
 // reinstantiation, directy passing it to the dispatcher tree.
 func LoggerFromCustomReceiver(receiver CustomReceiver) (LoggerInterface, error) {
-	constraints, err := NewMinMaxConstraints(TraceLvl, CriticalLvl)
+	constraints, err := newMinMaxConstraints(TraceLvl, CriticalLvl)
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := NewCustomReceiverDispatcherByValue(msgonlyformatter, receiver, "user-proxy", CustomReceiverInitArgs{})
+	output, err := newCustomReceiverDispatcherByValue(msgonlyformatter, receiver, "user-proxy", CustomReceiverInitArgs{})
 	if err != nil {
 		return nil, err
 	}
-	dispatcher, err := NewSplitDispatcher(msgonlyformatter, []interface{}{output})
-	if err != nil {
-		return nil, err
-	}
-
-	conf, err := newFullLoggerConfig(constraints, make([]*LogLevelException, 0), dispatcher, syncloggerTypeFromString, nil, nil)
+	dispatcher, err := newSplitDispatcher(msgonlyformatter, []interface{}{output})
 	if err != nil {
 		return nil, err
 	}
 
-	return createLoggerFromFullConfig(conf)
+	conf, err := newConfig(constraints, make([]*logLevelException, 0), dispatcher, syncloggerTypeFromString, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return createLoggerFromConfig(conf)
 }

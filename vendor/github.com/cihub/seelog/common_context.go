@@ -25,7 +25,7 @@
 package seelog
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -33,60 +33,75 @@ import (
 	"time"
 )
 
-var workingDir = "/"
+var workingDir = ""
 
 func init() {
-	wd, err := os.Getwd()
-	if err == nil {
-		workingDir = filepath.ToSlash(wd) + "/"
-	}
+	setWorkDir()
 }
 
-// Represents runtime caller context.
+func setWorkDir() {
+	workDir, workingDirError := os.Getwd()
+	if workingDirError != nil {
+		workingDir = string(os.PathSeparator)
+		return
+	}
+
+	workingDir = workDir + string(os.PathSeparator)
+}
+
+// Represents runtime caller context
 type LogContextInterface interface {
-	// Caller's function name.
+	// Caller func name
 	Func() string
-	// Caller's line number.
+	// Caller line num
 	Line() int
-	// Caller's file short path (in slashed form).
+	// Caller file short path
 	ShortPath() string
-	// Caller's file full path (in slashed form).
+	// Caller file full path
 	FullPath() string
-	// Caller's file name (without path).
+	// Caller file name (without path)
 	FileName() string
 	// True if the context is correct and may be used.
 	// If false, then an error in context evaluation occurred and
 	// all its other data may be corrupted.
 	IsValid() bool
-	// Time when log function was called.
+	// Time when log func was called
 	CallTime() time.Time
-	// Custom context that can be set by calling logger.SetContext
-	CustomContext() interface{}
 }
 
 // Returns context of the caller
-func currentContext(custom interface{}) (LogContextInterface, error) {
-	return specifyContext(1, custom)
+func currentContext() (LogContextInterface, error) {
+	return specificContext(1)
 }
 
-func extractCallerInfo(skip int) (fullPath string, shortPath string, funcName string, line int, err error) {
-	pc, fp, ln, ok := runtime.Caller(skip)
+func extractCallerInfo(skip int) (fullPath string, shortPath string, funcName string, lineNumber int, err error) {
+	pc, fullPath, line, ok := runtime.Caller(skip)
+
 	if !ok {
-		err = fmt.Errorf("error during runtime.Caller")
-		return
+		return "", "", "", 0, errors.New("Error during runtime.Caller")
 	}
-	line = ln
-	fullPath = fp
-	if strings.HasPrefix(fp, workingDir) {
-		shortPath = fp[len(workingDir):]
+
+	//TODO:Currently fixes bug in weekly.2012-03-13+: Caller returns incorrect separators
+	//Delete later
+
+	fullPath = strings.Replace(fullPath, "\\", string(os.PathSeparator), -1)
+	fullPath = strings.Replace(fullPath, "/", string(os.PathSeparator), -1)
+
+	if strings.HasPrefix(fullPath, workingDir) {
+		shortPath = fullPath[len(workingDir):]
 	} else {
-		shortPath = fp
+		shortPath = fullPath
 	}
-	funcName = runtime.FuncForPC(pc).Name()
-	if strings.HasPrefix(funcName, workingDir) {
-		funcName = funcName[len(workingDir):]
+
+	funName := runtime.FuncForPC(pc).Name()
+	var functionName string
+	if strings.HasPrefix(funName, workingDir) {
+		functionName = funName[len(workingDir):len(funName)]
+	} else {
+		functionName = funName
 	}
-	return
+
+	return fullPath, shortPath, functionName, line, nil
 }
 
 // Returns context of the function with placed "skip" stack frames of the caller
@@ -94,21 +109,23 @@ func extractCallerInfo(skip int) (fullPath string, shortPath string, funcName st
 // Context is returned in any situation, even if error occurs. But, if an error
 // occurs, the returned context is an error context, which contains no paths
 // or names, but states that they can't be extracted.
-func specifyContext(skip int, custom interface{}) (LogContextInterface, error) {
+func specificContext(skip int) (LogContextInterface, error) {
 	callTime := time.Now()
+
 	if skip < 0 {
-		err := fmt.Errorf("can not skip negative stack frames")
-		return &errorContext{callTime, err}, err
+		negativeStackFrameErr := errors.New("Can not skip negative stack frames")
+		return &errorContext{callTime, negativeStackFrameErr}, negativeStackFrameErr
 	}
-	fullPath, shortPath, funcName, line, err := extractCallerInfo(skip + 2)
+
+	fullPath, shortPath, function, line, err := extractCallerInfo(skip + 2)
 	if err != nil {
 		return &errorContext{callTime, err}, err
 	}
 	_, fileName := filepath.Split(fullPath)
-	return &logContext{funcName, line, shortPath, fullPath, fileName, callTime, custom}, nil
+	return &logContext{function, line, shortPath, fullPath, fileName, callTime}, nil
 }
 
-// Represents a normal runtime caller context.
+// Represents a normal runtime caller context
 type logContext struct {
 	funcName  string
 	line      int
@@ -116,7 +133,6 @@ type logContext struct {
 	fullPath  string
 	fileName  string
 	callTime  time.Time
-	custom    interface{}
 }
 
 func (context *logContext) IsValid() bool {
@@ -147,18 +163,17 @@ func (context *logContext) CallTime() time.Time {
 	return context.callTime
 }
 
-func (context *logContext) CustomContext() interface{} {
-	return context.custom
-}
+const (
+	errorContextFunc      = "Func() error:"
+	errorContextShortPath = "ShortPath() error:"
+	errorContextFullPath  = "FullPath() error:"
+	errorContextFileName  = "FileName() error:"
+)
 
 // Represents an error context
 type errorContext struct {
 	errorTime time.Time
 	err       error
-}
-
-func (errContext *errorContext) getErrorText(prefix string) string {
-	return fmt.Sprintf("%s() error: %s", prefix, errContext.err)
 }
 
 func (errContext *errorContext) IsValid() bool {
@@ -170,25 +185,21 @@ func (errContext *errorContext) Line() int {
 }
 
 func (errContext *errorContext) Func() string {
-	return errContext.getErrorText("Func")
+	return errorContextFunc + errContext.err.Error()
 }
 
 func (errContext *errorContext) ShortPath() string {
-	return errContext.getErrorText("ShortPath")
+	return errorContextShortPath + errContext.err.Error()
 }
 
 func (errContext *errorContext) FullPath() string {
-	return errContext.getErrorText("FullPath")
+	return errorContextFullPath + errContext.err.Error()
 }
 
 func (errContext *errorContext) FileName() string {
-	return errContext.getErrorText("FileName")
+	return errorContextFileName + errContext.err.Error()
 }
 
 func (errContext *errorContext) CallTime() time.Time {
 	return errContext.errorTime
-}
-
-func (errContext *errorContext) CustomContext() interface{} {
-	return nil
 }

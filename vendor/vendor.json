@@ -1,0 +1,81 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "github.com/cihub/seelog",
+			"revision": "83d0dcad636b63c066856045962befa246e00c79",
+			"revisionTime": "2014-05-19T16:30:49+04:00"
+		},
+		{
+			"path": "github.com/dustin/go-humanize",
+			"revision": "cb7b800be3f0238405be0e57d481740cfc4fb285",
+			"revisionTime": "2014-07-14T23:30:09-07:00"
+		},
+		{
+			"path": "github.com/fatih/structs",
+			"revision": "12ff68a6f48a1c8bd118316171545683337655df",
+			"revisionTime": "2016-02-24T10:23:52+02:00"
+		},
+		{
+			"path": "github.com/gizak/termui",
+			"revision": "08a5d3f67b7d9ec87830ea39c48e570a1f18531f",
+			"revisionTime": "2016-01-27T14:12:43-05:00"
+		},
+		{
+			"path": "github.com/influxdata/influxdb/client/v2",
+			"revision": "4e8004ec83d7f6748cf3b2fc716027a7200ede56",
+			"revisionTime": "2016-03-04T17:10:40-05:00"
+		},
+		{
+			"path": "github.com/influxdata/influxdb/models",
+			"revision": "4e8004ec83d7f6748cf3b2fc716027a7200ede56",
+			"revisionTime": "2016-03-04T17:10:40-05:00"
+		},
+		{
+			"path": "github.com/influxdata/influxdb/pkg/escape",
+			"revision": "4e8004ec83d7f6748cf3b2fc716027a7200ede56",
+			"revisionTime": "2016-03-04T17:10:40-05:00"
+		},
+		{
+			"path": "github.com/jtolds/gls",
+			"revision": "f1ac7f4f24f50328e6bc838ca4437d1612a0243c",
+			"revisionTime": "2014-11-03T11:57:36-07:00"
+		},
+		{
+			"path": "github.com/mattn/go-runewidth",
+			"revision": "d037b52ae5c0338c2bb18da01fb7ddf0e8be9aa1",
+			"revisionTime": "2016-02-16T20:09:16+09:00"
+		},
+		{
+			"path": "github.com/nsf/termbox-go",
+			"revision": "362329b0aa6447eadd52edd8d660ec1dff470295",
+			"revisionTime": "2016-01-23T04:29:15+05:00"
+		},
+		{
+			"path": "github.com/smartystreets/assertions",
+			"revision": "75acd402ca38dc205641a826bb58b9de014926dd",
+			"revisionTime": "2015-03-02T13:53:52-07:00"
+		},
+		{
+			"path": "github.com/smartystreets/assertions/internal/oglematchers",
+			"revision": "75acd402ca38dc205641a826bb58b9de014926dd",
+			"revisionTime": "2015-03-02T13:53:52-07:00"
+		},
+		{
+			"path": "github.com/smartystreets/goconvey/convey",
+			"revision": "b25107bbf9a85361c2498d1fdc329d3b09cc9896",
+			"revisionTime": "2015-03-25T14:04:50-06:00"
+		},
+		{
+			"path": "github.com/smartystreets/goconvey/convey/gotest",
+			"revision": "b25107bbf9a85361c2498d1fdc329d3b09cc9896",
+			"revisionTime": "2015-03-25T14:04:50-06:00"
+		},
+		{
+			"path": "github.com/smartystreets/goconvey/convey/reporting",
+			"revision": "b25107bbf9a85361c2498d1fdc329d3b09cc9896",
+			"revisionTime": "2015-03-25T14:04:50-06:00"
+		}
+	]
+}

@@ -33,7 +33,7 @@ type splitDispatcher struct {
 	*dispatcher
 }
 
-func NewSplitDispatcher(formatter *formatter, receivers []interface{}) (*splitDispatcher, error) {
+func newSplitDispatcher(formatter *formatter, receivers []interface{}) (*splitDispatcher, error) {
 	disp, err := createDispatcher(formatter, receivers)
 	if err != nil {
 		return nil, err

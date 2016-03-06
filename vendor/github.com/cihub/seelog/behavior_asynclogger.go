@@ -26,6 +26,7 @@ package seelog
 
 import (
 	"container/list"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -72,7 +73,7 @@ func (asnLogger *asyncLogger) Close() {
 	asnLogger.m.Lock()
 	defer asnLogger.m.Unlock()
 
-	if !asnLogger.Closed() {
+	if !asnLogger.closed {
 		asnLogger.flushQueue(true)
 		asnLogger.config.RootDispatcher.Flush()
 
@@ -80,9 +81,6 @@ func (asnLogger *asyncLogger) Close() {
 			reportInternalError(err)
 		}
 
-		asnLogger.closedM.Lock()
-		asnLogger.closed = true
-		asnLogger.closedM.Unlock()
 		asnLogger.queueHasElements.Broadcast()
 	}
 }
@@ -91,7 +89,7 @@ func (asnLogger *asyncLogger) Flush() {
 	asnLogger.m.Lock()
 	defer asnLogger.m.Unlock()
 
-	if !asnLogger.Closed() {
+	if !asnLogger.closed {
 		asnLogger.flushQueue(true)
 		asnLogger.config.RootDispatcher.Flush()
 	}
@@ -122,7 +120,7 @@ func (asnLogger *asyncLogger) addMsgToQueue(
 	context LogContextInterface,
 	message fmt.Stringer) {
 
-	if !asnLogger.Closed() {
+	if !asnLogger.closed {
 		asnLogger.queueHasElements.L.Lock()
 		defer asnLogger.queueHasElements.L.Unlock()
 
@@ -136,7 +134,7 @@ func (asnLogger *asyncLogger) addMsgToQueue(
 		asnLogger.msgQueue.PushBack(queueItem)
 		asnLogger.queueHasElements.Broadcast()
 	} else {
-		err := fmt.Errorf("queue closed! Cannot process element: %d %#v", level, message)
+		err := errors.New(fmt.Sprintf("Queue closed! Cannot process element: %d %#v", level, message))
 		reportInternalError(err)
 	}
 }

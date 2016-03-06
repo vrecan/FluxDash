@@ -95,33 +95,29 @@ var ten = big.NewInt(10)
 
 func humanateBigBytes(s, base *big.Int, sizes []string) string {
 	if s.Cmp(ten) < 0 {
-		return fmt.Sprintf("%d B", s)
+		return fmt.Sprintf("%dB", s)
 	}
 	c := (&big.Int{}).Set(s)
 	val, mag := oomm(c, base, len(sizes)-1)
 	suffix := sizes[mag]
-	f := "%.0f %s"
+	f := "%.0f"
 	if val < 10 {
-		f = "%.1f %s"
+		f = "%.1f"
 	}
 
-	return fmt.Sprintf(f, val, suffix)
+	return fmt.Sprintf(f+"%s", val, suffix)
 
 }
 
 // BigBytes produces a human readable representation of an SI size.
 //
-// See also: ParseBigBytes.
-//
 // BigBytes(82854982) -> 83MB
 func BigBytes(s *big.Int) string {
-	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
 	return humanateBigBytes(s, bigSIExp, sizes)
 }
 
 // BigIBytes produces a human readable representation of an IEC size.
-//
-// See also: ParseBigBytes.
 //
 // BigIBytes(82854982) -> 79MiB
 func BigIBytes(s *big.Int) string {
@@ -131,8 +127,6 @@ func BigIBytes(s *big.Int) string {
 
 // ParseBigBytes parses a string representation of bytes into the number
 // of bytes it represents.
-//
-// See also: BigBytes, BigIBytes.
 //
 // ParseBigBytes("42MB") -> 42000000, nil
 // ParseBigBytes("42mib") -> 44040192, nil
