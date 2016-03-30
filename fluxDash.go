@@ -12,6 +12,8 @@ import (
 )
 
 var json = flag.String("f", "dashboards", "-f can be passed a single file or a folder of json dashboards")
+var username = flag.String("user", "admin", "-user sets the username for connecting to influxdb")
+var password = flag.String("pass", "", "-pass sets the password for connecting to influxdb")
 
 func main() {
 	flag.Parse()
@@ -23,7 +25,7 @@ func main() {
 	}
 
 	log.ReplaceLogger(logger)
-	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: "", Password: ""}
+	c := DBC.HTTPConfig{Addr: "http://127.0.0.1:8086", Username: *username, Password: *password}
 	db, err := DB.NewInflux(c)
 	if nil != err {
 		panic(err)
