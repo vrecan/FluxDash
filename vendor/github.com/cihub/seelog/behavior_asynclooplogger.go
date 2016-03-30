@@ -30,8 +30,8 @@ type asyncLoopLogger struct {
 	asyncLogger
 }
 
-// NewAsyncLoopLogger creates a new asynchronous loop logger
-func NewAsyncLoopLogger(config *logConfig) *asyncLoopLogger {
+// newAsyncLoopLogger creates a new asynchronous loop logger
+func newAsyncLoopLogger(config *logConfig) *asyncLoopLogger {
 
 	asnLoopLogger := new(asyncLoopLogger)
 
@@ -46,11 +46,11 @@ func (asnLoopLogger *asyncLoopLogger) processItem() (closed bool) {
 	asnLoopLogger.queueHasElements.L.Lock()
 	defer asnLoopLogger.queueHasElements.L.Unlock()
 
-	for asnLoopLogger.msgQueue.Len() == 0 && !asnLoopLogger.Closed() {
+	for asnLoopLogger.msgQueue.Len() == 0 && !asnLoopLogger.closed {
 		asnLoopLogger.queueHasElements.Wait()
 	}
 
-	if asnLoopLogger.Closed() {
+	if asnLoopLogger.closed {
 		return true
 	}
 
@@ -59,7 +59,7 @@ func (asnLoopLogger *asyncLoopLogger) processItem() (closed bool) {
 }
 
 func (asnLoopLogger *asyncLoopLogger) processQueue() {
-	for !asnLoopLogger.Closed() {
+	for !asnLoopLogger.closed {
 		closed := asnLoopLogger.processItem()
 
 		if closed {

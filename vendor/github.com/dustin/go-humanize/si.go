@@ -41,7 +41,7 @@ func revfmap(in map[float64]string) map[string]float64 {
 var riParseRegex *regexp.Regexp
 
 func init() {
-	ri := `^([0-9.]+)\s?([`
+	ri := `^([0-9.]+)([`
 	for _, v := range siPrefixTable {
 		ri += v
 	}
@@ -53,8 +53,6 @@ func init() {
 // ComputeSI finds the most appropriate SI prefix for the given number
 // and returns the prefix along with the value adjusted to be within
 // that prefix.
-//
-// See also: SI, ParseSI.
 //
 // e.g. ComputeSI(2.2345e-12) -> (2.2345, "p")
 func ComputeSI(input float64) (float64, string) {
@@ -81,20 +79,16 @@ func ComputeSI(input float64) (float64, string) {
 //
 // SI uses Ftoa to format float value, removing trailing zeros.
 //
-// See also: ComputeSI, ParseSI.
-//
 // e.g. SI(1000000, B) -> 1MB
 // e.g. SI(2.2345e-12, "F") -> 2.2345pF
 func SI(input float64, unit string) string {
 	value, prefix := ComputeSI(input)
-	return Ftoa(value) + " " + prefix + unit
+	return Ftoa(value) + prefix + unit
 }
 
 var errInvalid = errors.New("invalid input")
 
 // ParseSI parses an SI string back into the number and unit.
-//
-// See also: SI, ComputeSI.
 //
 // e.g. ParseSI(2.2345pF) -> (2.2345e-12, "F", nil)
 func ParseSI(input string) (float64, string, error) {

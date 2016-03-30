@@ -35,8 +35,8 @@ type filterDispatcher struct {
 	allowList map[LogLevel]bool
 }
 
-// NewFilterDispatcher creates a new filterDispatcher using a list of allowed levels.
-func NewFilterDispatcher(formatter *formatter, receivers []interface{}, allowList ...LogLevel) (*filterDispatcher, error) {
+// newFilterDispatcher creates a new filterDispatcher using a list of allowed levels.
+func newFilterDispatcher(formatter *formatter, receivers []interface{}, allowList ...LogLevel) (*filterDispatcher, error) {
 	disp, err := createDispatcher(formatter, receivers)
 	if err != nil {
 		return nil, err

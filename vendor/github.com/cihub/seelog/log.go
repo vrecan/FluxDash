@@ -66,23 +66,23 @@ func init() {
 	Current = Default
 }
 
-func createLoggerFromFullConfig(config *configForParsing) (LoggerInterface, error) {
+func createLoggerFromConfig(config *logConfig) (LoggerInterface, error) {
 	if config.LogType == syncloggerTypeFromString {
-		return NewSyncLogger(&config.logConfig), nil
+		return newSyncLogger(config), nil
 	} else if config.LogType == asyncLooploggerTypeFromString {
-		return NewAsyncLoopLogger(&config.logConfig), nil
+		return newAsyncLoopLogger(config), nil
 	} else if config.LogType == asyncTimerloggerTypeFromString {
 		logData := config.LoggerData
 		if logData == nil {
-			return nil, errors.New("async timer data not set")
+			return nil, errors.New("Async timer data not set!")
 		}
 
 		asyncInt, ok := logData.(asyncTimerLoggerData)
 		if !ok {
-			return nil, errors.New("invalid async timer data")
+			return nil, errors.New("Invalid async timer data!")
 		}
 
-		logger, err := NewAsyncTimerLogger(&config.logConfig, time.Duration(asyncInt.AsyncInterval))
+		logger, err := newAsyncTimerLogger(config, time.Duration(asyncInt.AsyncInterval))
 		if !ok {
 			return nil, err
 		}
@@ -91,16 +91,16 @@ func createLoggerFromFullConfig(config *configForParsing) (LoggerInterface, erro
 	} else if config.LogType == adaptiveLoggerTypeFromString {
 		logData := config.LoggerData
 		if logData == nil {
-			return nil, errors.New("adaptive logger parameters not set")
+			return nil, errors.New("Adaptive logger parameters not set!")
 		}
 
 		adaptData, ok := logData.(adaptiveLoggerData)
 		if !ok {
-			return nil, errors.New("invalid adaptive logger parameters")
+			return nil, errors.New("Invalid adaptive logger parameters!")
 		}
 
-		logger, err := NewAsyncAdaptiveLogger(
-			&config.logConfig,
+		logger, err := newAsyncAdaptiveLogger(
+			config,
 			time.Duration(adaptData.MinInterval),
 			time.Duration(adaptData.MaxInterval),
 			adaptData.CriticalMsgCount,
@@ -111,7 +111,7 @@ func createLoggerFromFullConfig(config *configForParsing) (LoggerInterface, erro
 
 		return logger, nil
 	}
-	return nil, errors.New("invalid config log type/data")
+	return nil, errors.New("Invalid config log type/data")
 }
 
 // UseLogger sets the 'Current' package level logger variable to the specified value.
@@ -133,7 +133,7 @@ func createLoggerFromFullConfig(config *configForParsing) (LoggerInterface, erro
 // To safely replace loggers, use ReplaceLogger.
 func UseLogger(logger LoggerInterface) error {
 	if logger == nil {
-		return errors.New("logger can not be nil")
+		return errors.New("Logger can not be nil")
 	}
 
 	pkgOperationsMutex.Lock()
@@ -170,7 +170,7 @@ func UseLogger(logger LoggerInterface) error {
 //     }
 func ReplaceLogger(logger LoggerInterface) error {
 	if logger == nil {
-		return errors.New("logger can not be nil")
+		return errors.New("Logger can not be nil")
 	}
 
 	pkgOperationsMutex.Lock()
@@ -178,7 +178,7 @@ func ReplaceLogger(logger LoggerInterface) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			reportInternalError(fmt.Errorf("recovered from panic during ReplaceLogger: %s", err))
+			reportInternalError(fmt.Errorf("Recovered from panic during ReplaceLogger: %s", err))
 		}
 	}()
 

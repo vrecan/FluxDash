@@ -34,8 +34,8 @@ type syncLogger struct {
 	commonLogger
 }
 
-// NewSyncLogger creates a new synchronous logger
-func NewSyncLogger(config *logConfig) *syncLogger {
+// newSyncLogger creates a new synchronous logger
+func newSyncLogger(config *logConfig) *syncLogger {
 	syncLogger := new(syncLogger)
 
 	syncLogger.commonLogger = *newCommonLogger(config, syncLogger)
@@ -43,25 +43,22 @@ func NewSyncLogger(config *logConfig) *syncLogger {
 	return syncLogger
 }
 
-func (syncLogger *syncLogger) innerLog(
+func (cLogger *syncLogger) innerLog(
 	level LogLevel,
 	context LogContextInterface,
 	message fmt.Stringer) {
 
-	syncLogger.processLogMsg(level, message, context)
+	cLogger.processLogMsg(level, message, context)
 }
 
 func (syncLogger *syncLogger) Close() {
 	syncLogger.m.Lock()
 	defer syncLogger.m.Unlock()
 
-	if !syncLogger.Closed() {
+	if !syncLogger.closed {
 		if err := syncLogger.config.RootDispatcher.Close(); err != nil {
 			reportInternalError(err)
 		}
-		syncLogger.closedM.Lock()
-		syncLogger.closed = true
-		syncLogger.closedM.Unlock()
 	}
 }
 
@@ -69,7 +66,7 @@ func (syncLogger *syncLogger) Flush() {
 	syncLogger.m.Lock()
 	defer syncLogger.m.Unlock()
 
-	if !syncLogger.Closed() {
+	if !syncLogger.closed {
 		syncLogger.config.RootDispatcher.Flush()
 	}
 }

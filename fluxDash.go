@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	log "github.com/cihub/seelog"
-	DBC "github.com/influxdb/influxdb/client/v2"
+	DBC "github.com/influxdata/influxdb/client/v2"
 	DASH "github.com/vrecan/FluxDash/dashboards"
 	DB "github.com/vrecan/FluxDash/influx"
 	"os"

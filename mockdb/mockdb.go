@@ -1,7 +1,7 @@
 package mockdb
 
 import (
-	DB "github.com/influxdb/influxdb/client/v2"
+	DB "github.com/influxdata/influxdb/client/v2"
 )
 
 type MockDB struct {

@@ -76,42 +76,31 @@ func getLoggerTypeFromString(logTypeString string) (level loggerTypeFromString, 
 }
 
 // logConfig stores logging configuration. Contains messages dispatcher, allowed log level rules
-// (general constraints and exceptions)
+// (general constraints and exceptions), and messages formats (used by nodes of dispatcher tree)
 type logConfig struct {
 	Constraints    logLevelConstraints  // General log level rules (>min and <max, or set of allowed levels)
-	Exceptions     []*LogLevelException // Exceptions to general rules for specific files or funcs
+	Exceptions     []*logLevelException // Exceptions to general rules for specific files or funcs
 	RootDispatcher dispatcherInterface  // Root of output tree
+	LogType        loggerTypeFromString
+	LoggerData     interface{}
+	Params         *CfgParseParams // Check cfg_parser: CfgParseParams
 }
 
-func NewLoggerConfig(c logLevelConstraints, e []*LogLevelException, d dispatcherInterface) *logConfig {
-	return &logConfig{c, e, d}
-}
-
-// configForParsing is used when parsing config from file: logger type is deduced from string, params
-// need to be converted from attributes to values and passed to specific logger constructor. Also,
-// custom registered receivers and other parse params are used in this case.
-type configForParsing struct {
-	logConfig
-	LogType    loggerTypeFromString
-	LoggerData interface{}
-	Params     *cfgParseParams // Check cfg_parser: cfgParseParams
-}
-
-func newFullLoggerConfig(
+func newConfig(
 	constraints logLevelConstraints,
-	exceptions []*LogLevelException,
+	exceptions []*logLevelException,
 	rootDispatcher dispatcherInterface,
 	logType loggerTypeFromString,
 	logData interface{},
-	cfgParams *cfgParseParams) (*configForParsing, error) {
+	cfgParams *CfgParseParams) (*logConfig, error) {
 	if constraints == nil {
-		return nil, errors.New("constraints can not be nil")
+		return nil, errors.New("Constraints can not be nil")
 	}
 	if rootDispatcher == nil {
-		return nil, errors.New("rootDispatcher can not be nil")
+		return nil, errors.New("RootDispatcher can not be nil")
 	}
 
-	config := new(configForParsing)
+	config := new(logConfig)
 	config.Constraints = constraints
 	config.Exceptions = exceptions
 	config.RootDispatcher = rootDispatcher

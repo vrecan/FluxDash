@@ -67,11 +67,11 @@ func RegisterReceiver(name string, receiver CustomReceiver) {
 func customReceiverByName(name string) (creceiver CustomReceiver, err error) {
 	rt, ok := registeredReceivers[name]
 	if !ok {
-		return nil, fmt.Errorf("custom receiver name not registered: '%s'", name)
+		return nil, fmt.Errorf("Custom receiver name not registered: '%s'", name)
 	}
 	v, ok := reflect.New(rt).Interface().(CustomReceiver)
 	if !ok {
-		return nil, fmt.Errorf("cannot instantiate receiver with name='%s'", name)
+		return nil, fmt.Errorf("Cannot instantiate receiver with name='%s'", name)
 	}
 	return v, nil
 }
@@ -151,9 +151,9 @@ type customReceiverDispatcher struct {
 	usedArgs           CustomReceiverInitArgs
 }
 
-// NewCustomReceiverDispatcher creates a customReceiverDispatcher which dispatches data to a specific receiver created
+// newCustomReceiverDispatcher creates a customReceiverDispatcher which dispatches data to a specific receiver created
 // using a <custom> tag in the config file.
-func NewCustomReceiverDispatcher(formatter *formatter, customReceiverName string, cArgs CustomReceiverInitArgs) (*customReceiverDispatcher, error) {
+func newCustomReceiverDispatcher(formatter *formatter, customReceiverName string, cArgs CustomReceiverInitArgs) (*customReceiverDispatcher, error) {
 	if formatter == nil {
 		return nil, errors.New("formatter cannot be nil")
 	}
@@ -174,9 +174,9 @@ func NewCustomReceiverDispatcher(formatter *formatter, customReceiverName string
 	return disp, nil
 }
 
-// NewCustomReceiverDispatcherByValue is basically the same as NewCustomReceiverDispatcher, but using
+// newCustomReceiverDispatcherByValue is basically the same as newCustomReceiverDispatcher, but using
 // a specific CustomReceiver value instead of instantiating a new one by type.
-func NewCustomReceiverDispatcherByValue(formatter *formatter, customReceiver CustomReceiver, name string, cArgs CustomReceiverInitArgs) (*customReceiverDispatcher, error) {
+func newCustomReceiverDispatcherByValue(formatter *formatter, customReceiver CustomReceiver, name string, cArgs CustomReceiverInitArgs) (*customReceiverDispatcher, error) {
 	if formatter == nil {
 		return nil, errors.New("formatter cannot be nil")
 	}
@@ -197,7 +197,7 @@ func (disp *customReceiverDispatcher) Dispatch(
 
 	defer func() {
 		if err := recover(); err != nil {
-			errorFunc(fmt.Errorf("panic in custom receiver '%s'.Dispatch: %s", reflect.TypeOf(disp.innerReceiver), err))
+			errorFunc(fmt.Errorf("Panic in custom receiver '%s'.Dispatch: %s", reflect.TypeOf(disp.innerReceiver), err))
 		}
 	}()
 

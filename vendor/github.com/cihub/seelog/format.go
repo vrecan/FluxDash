@@ -25,11 +25,11 @@
 package seelog
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -38,13 +38,13 @@ import (
 const (
 	FormatterSymbol = '%'
 )
-
 const (
+	formatterSymbolString   = "%"
 	formatterParameterStart = '('
 	formatterParameterEnd   = ')'
 )
 
-// Time and date formats used for %Date and %Time aliases.
+// These are the time and date formats that are used when %Date or %Time format aliases are used.
 const (
 	DateDefaultFormat = "2006-01-02"
 	TimeFormat        = "15:04:05"
@@ -52,18 +52,18 @@ const (
 
 var DefaultMsgFormat = "%Ns [%Level] %Msg%n"
 
-var (
-	DefaultFormatter *formatter
-	msgonlyformatter *formatter
-)
+var defaultformatter *formatter
+var msgonlyformatter *formatter
 
 func init() {
 	var err error
-	if DefaultFormatter, err = NewFormatter(DefaultMsgFormat); err != nil {
-		reportInternalError(fmt.Errorf("error during creating DefaultFormatter: %s", err))
+	defaultformatter, err = newFormatter(DefaultMsgFormat)
+	if err != nil {
+		fmt.Println("Error during defaultformatter creation: " + err.Error())
 	}
-	if msgonlyformatter, err = NewFormatter("%Msg"); err != nil {
-		reportInternalError(fmt.Errorf("error during creating msgonlyformatter: %s", err))
+	msgonlyformatter, err = newFormatter("%Msg")
+	if err != nil {
+		fmt.Println("Error during msgonlyformatter creation: " + err.Error())
 	}
 }
 
@@ -110,7 +110,7 @@ var formatterFuncsParameterized = map[string]FormatterFuncCreator{
 }
 
 func errorAliasReserved(name string) error {
-	return fmt.Errorf("cannot use '%s' as custom formatter name. Name is reserved", name)
+	return fmt.Errorf("Cannot use '%s' as custom formatter name. Name is reserved.", name)
 }
 
 // RegisterCustomFormatter registers a new custom formatter factory with a given name. If returned error is nil,
@@ -147,53 +147,59 @@ type formatter struct {
 	formatterFuncs    []FormatterFunc
 }
 
-// NewFormatter creates a new formatter using a format string
-func NewFormatter(formatString string) (*formatter, error) {
-	fmtr := new(formatter)
-	fmtr.fmtStringOriginal = formatString
-	if err := buildFormatterFuncs(fmtr); err != nil {
+// newFormatter creates a new formatter using a format string
+func newFormatter(formatString string) (*formatter, error) {
+	newformatter := new(formatter)
+	newformatter.fmtStringOriginal = formatString
+
+	err := newformatter.buildFormatterFuncs()
+	if err != nil {
 		return nil, err
 	}
-	return fmtr, nil
+
+	return newformatter, nil
 }
 
-func buildFormatterFuncs(formatter *formatter) error {
-	var (
-		fsbuf  = new(bytes.Buffer)
-		fsolm1 = len(formatter.fmtStringOriginal) - 1
-	)
-	for i := 0; i <= fsolm1; i++ {
-		if char := formatter.fmtStringOriginal[i]; char != FormatterSymbol {
-			fsbuf.WriteByte(char)
+func (formatter *formatter) buildFormatterFuncs() error {
+	formatter.formatterFuncs = make([]FormatterFunc, 0)
+	var fmtString string
+	for i := 0; i < len(formatter.fmtStringOriginal); i++ {
+		char := formatter.fmtStringOriginal[i]
+		if char != FormatterSymbol {
+			fmtString += string(char)
 			continue
 		}
-		// Check if the index is at the end of the string.
-		if i == fsolm1 {
-			return fmt.Errorf("format error: %c cannot be last symbol", FormatterSymbol)
+
+		isEndOfStr := i == len(formatter.fmtStringOriginal)-1
+		if isEndOfStr {
+			return errors.New(fmt.Sprintf("Format error: %v - last symbol", formatterSymbolString))
 		}
-		// Check if the formatter symbol is doubled and skip it as nonmatching.
-		if formatter.fmtStringOriginal[i+1] == FormatterSymbol {
-			fsbuf.WriteRune(FormatterSymbol)
+
+		isDoubledFormatterSymbol := formatter.fmtStringOriginal[i+1] == FormatterSymbol
+		if isDoubledFormatterSymbol {
+			fmtString += formatterSymbolString
 			i++
 			continue
 		}
-		function, ni, err := formatter.extractFormatterFunc(i + 1)
+
+		function, nextI, err := formatter.extractFormatterFunc(i + 1)
 		if err != nil {
 			return err
 		}
-		// Append formatting string "%v".
-		fsbuf.Write([]byte{37, 118})
-		i = ni
+
+		fmtString += "%v"
+		i = nextI
 		formatter.formatterFuncs = append(formatter.formatterFuncs, function)
 	}
-	formatter.fmtString = fsbuf.String()
+
+	formatter.fmtString = fmtString
 	return nil
 }
 
 func (formatter *formatter) extractFormatterFunc(index int) (FormatterFunc, int, error) {
 	letterSequence := formatter.extractLetterSequence(index)
 	if len(letterSequence) == 0 {
-		return nil, 0, fmt.Errorf("format error: lack of formatter after %c at %d", FormatterSymbol, index)
+		return nil, 0, errors.New(fmt.Sprintf("Format error: lack of formatter after %v. At %v", formatterSymbolString, index))
 	}
 
 	function, formatterLength, ok := formatter.findFormatterFunc(letterSequence)
@@ -201,15 +207,12 @@ func (formatter *formatter) extractFormatterFunc(index int) (FormatterFunc, int,
 		return function, index + formatterLength - 1, nil
 	}
 
-	function, formatterLength, ok, err := formatter.findFormatterFuncParametrized(letterSequence, index)
-	if err != nil {
-		return nil, 0, err
-	}
+	function, formatterLength, ok = formatter.findFormatterFuncParametrized(letterSequence, index)
 	if ok {
 		return function, index + formatterLength - 1, nil
 	}
 
-	return nil, 0, errors.New("format error: unrecognized formatter at " + strconv.Itoa(index) + ": " + letterSequence)
+	return nil, 0, errors.New("Format error: unrecognized formatter at " + strconv.Itoa(index) + ": " + letterSequence)
 }
 
 func (formatter *formatter) extractLetterSequence(index int) string {
@@ -243,49 +246,44 @@ func (formatter *formatter) findFormatterFunc(letters string) (FormatterFunc, in
 	return nil, 0, false
 }
 
-func (formatter *formatter) findFormatterFuncParametrized(letters string, lettersStartIndex int) (FormatterFunc, int, bool, error) {
+func (formatter *formatter) findFormatterFuncParametrized(letters string, lettersStartIndex int) (FormatterFunc, int, bool) {
 	currentVerb := letters
 	for i := 0; i < len(letters); i++ {
 		functionCreator, ok := formatterFuncsParameterized[currentVerb]
 		if ok {
-			parameter := ""
+			paramter := ""
 			parameterLen := 0
 			isVerbEqualsLetters := i == 0 // if not, then letter goes after formatter, and formatter is parameterless
 			if isVerbEqualsLetters {
-				userParameter := ""
-				var err error
-				userParameter, parameterLen, ok, err = formatter.findparameter(lettersStartIndex + len(currentVerb))
+				userParamter := ""
+				userParamter, parameterLen, ok = formatter.findparameter(lettersStartIndex + len(currentVerb))
 				if ok {
-					parameter = userParameter
-				} else if err != nil {
-					return nil, 0, false, err
+					paramter = userParamter
 				}
 			}
 
-			return functionCreator(parameter), len(currentVerb) + parameterLen, true, nil
+			return functionCreator(paramter), len(currentVerb) + parameterLen, true
 		}
 
 		currentVerb = currentVerb[:len(currentVerb)-1]
 	}
 
-	return nil, 0, false, nil
+	return nil, 0, false
 }
 
-func (formatter *formatter) findparameter(startIndex int) (string, int, bool, error) {
+func (formatter *formatter) findparameter(startIndex int) (string, int, bool) {
 	if len(formatter.fmtStringOriginal) == startIndex || formatter.fmtStringOriginal[startIndex] != formatterParameterStart {
-		return "", 0, false, nil
+		return "", 0, false
 	}
 
-	endIndex := strings.Index(formatter.fmtStringOriginal[startIndex:], string(formatterParameterEnd))
+	endIndex := strings.Index(formatter.fmtStringOriginal[startIndex:], string(formatterParameterEnd)) + startIndex
 	if endIndex == -1 {
-		return "", 0, false, fmt.Errorf("Unmatched parenthesis or invalid parameter at %d: %s",
-			startIndex, formatter.fmtStringOriginal[startIndex:])
+		return "", 0, false
 	}
-	endIndex += startIndex
 
 	length := endIndex - startIndex + 1
 
-	return formatter.fmtStringOriginal[startIndex+1 : endIndex], length, true, nil
+	return formatter.fmtStringOriginal[startIndex+1 : endIndex], length, true
 }
 
 // Format processes a message with special formatters, log level, and context. Returns formatted string
@@ -436,7 +434,7 @@ func createDateTimeFormatterFunc(dateTimeFormat string) FormatterFunc {
 		format = DateDefaultFormat
 	}
 	return func(message string, level LogLevel, context LogContextInterface) interface{} {
-		return context.CallTime().Format(format)
+		return time.Now().Format(format)
 	}
 }
 
@@ -446,7 +444,7 @@ func createUTCDateTimeFormatterFunc(dateTimeFormat string) FormatterFunc {
 		format = DateDefaultFormat
 	}
 	return func(message string, level LogLevel, context LogContextInterface) interface{} {
-		return context.CallTime().UTC().Format(format)
+		return time.Now().UTC().Format(format)
 	}
 }
 
